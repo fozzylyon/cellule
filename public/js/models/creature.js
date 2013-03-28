@@ -12,7 +12,7 @@ define( function ( require ) {
 		var maxStrength         = 100;
 		var sizeToStrengthRatio = 4 / maxStrength;
 		var minSight            = 10;
-		var maxSight            = 25;
+		var maxSight            = 150;
 		var colors              = [ '#EFEFEF', '#FF6348', '#F2CB05', '#49F09F', '#52B0ED' ];
 		var minSize             = 2;
 
@@ -23,7 +23,8 @@ define( function ( require ) {
 		this.offspring  = 0;
 		this.nextMating = 100;
 		this.energy     = options.energy || 100;
-		this.isChasing  = false;
+		this.isHunting  = false;
+		this.isMating   = false;
 
 		// Inherited attributes
 		this.traits = {
@@ -74,7 +75,7 @@ define( function ( require ) {
 		var ageCheck     = this.age > this.nextMating && creature.age > this.nextMating;
 		var energyCheck  = this.energy > reproductionEnergyCost[ 0 ] && creature.energy > reproductionEnergyCost[ 1 ];
 		var genderCheck  = this.gender !== creature.gender;
-		var chasingCheck = !this.isChasing && !creature.isChasing;
+		var chasingCheck = !this.isHunting && !creature.isHunting;
 
 		if ( ageCheck && energyCheck && genderCheck && chasingCheck ) {
 			this.energy     -= reproductionEnergyCost[ 0 ];
@@ -142,7 +143,7 @@ define( function ( require ) {
 		if ( this.energy > 0 ) {
 
 			// Different algorithm if the creature is chasing
-			if ( this.isChasing ) {
+			if ( this.isHunting || this.isMating ) {
 				vector = this.destination.subtract( this.drawing.position );
 
 				this.drawing.position = this.drawing.position.add( vector.divide( this.traits.speed / 20 ) );
@@ -153,7 +154,7 @@ define( function ( require ) {
 				vector = this.destination.subtract( this.drawing.position );
 
 				// Create a new destination
-				if ( !this.isChasing && vector.length < 100 ) {
+				if ( vector.length < 100 ) {
 					this.destination = this._getRandomPoint();
 				}
 
@@ -192,13 +193,27 @@ define( function ( require ) {
 
 	Creature.prototype._detectBySight = function () {
 		this._hitTest( this.traits.sight, function ( creature ) {
+			var colorCheck  = this.traits.color === creature.traits.color;
+			var genderCheck = this.gender !== creature.gender;
 
-			// Different species
-			if ( this.traits.color !== creature.traits.color && this.size >= creature.size ) {
-				this.isChasing   = true;
+			// Chase to mate
+			if ( colorCheck && genderCheck && this.gender === 'male' && this.energy > 50 ) {
+				this.isMating    = true;
+				this.isHunting   = false;
 				this.destination = creature.drawing.position;
-			} else {
-				this.isChasing = false;
+			}
+
+			// Chase to hunt
+			else if ( !colorCheck && this.size >= creature.size && this.energy < 40 ) {
+				this.isMating    = false;
+				this.isHunting   = true;
+				this.destination = creature.drawing.position;
+			}
+
+			// No mating or hunting
+			else {
+				this.isHunting = false;
+				this.isHunting = false;
 			}
 
 		} );

@@ -31,7 +31,7 @@ define( function ( require ) {
 			} );
 		};
 
-		tool.onMouseDown = function ( event ) {
+		tool.onMouseDrag = function ( event ) {
 			creatures.push( new Creature( {
 				'x' : event.event.x,
 				'y' : event.event.y
