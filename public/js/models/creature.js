@@ -13,7 +13,7 @@ define( function ( require ) {
 		var maxStrength         = 100;
 		var sizeToStrengthRatio = 4 / maxStrength;
 		var minSight            = 10;
-		var maxSight            = 20;
+		var maxSight            = 50;
 		var colors              = [ '#E8007A', '#FF6348', '#F2CB05', '#D4FF00', '#49F09F' ];
 		var minSize             = 2;
 
@@ -24,6 +24,7 @@ define( function ( require ) {
 		this.offspring  = 0;
 		this.nextMating = 100;
 		this.energy     = options.energy || 100;
+		this.isChasing  = false;
 
 		// Inherited attributes
 		this.traits = {
@@ -66,22 +67,17 @@ define( function ( require ) {
 
 	// Attempt to reproduce
 	Creature.prototype.reproduce = function ( creature ) {
-
 		var reproductionEnergyCost = [
 			this.traits.metabolicRate / 2,
 			creature.traits.metabolicRate / 2
 		];
 
-		if (
-			// check if they are ready to reproduce
-			this.age > this.nextMating && creature.age > this.nextMating &&
+		var ageCheck     = this.age > this.nextMating && creature.age > this.nextMating;
+		var energyCheck  = this.energy > reproductionEnergyCost[ 0 ] && creature.energy > reproductionEnergyCost[ 1 ];
+		var genderCheck  = this.gender !== creature.gender;
+		var chasingCheck = !this.isChasing && !creature.isChasing;
 
-			// Check if they have enough energy to reproduce
-			this.energy > reproductionEnergyCost[ 0 ] && creature.energy > reproductionEnergyCost[ 1 ] &&
-
-			// Must be different genders
-			this.gender !== creature.gender
-		) {
+		if ( ageCheck && energyCheck && genderCheck && chasingCheck ) {
 			this.energy     -= reproductionEnergyCost[ 0 ];
 			creature.energy -= reproductionEnergyCost[ 1 ];
 
@@ -112,9 +108,10 @@ define( function ( require ) {
 	// Average the traits between `this` creature and `creature`
 	Creature.prototype._mergeTraits = function ( creature ) {
 		return {
-			'metabolicRate' : ( this.traits.metabolicRate + creature.traits.metabolicRate ) / 2,
 			'speed'         : ( this.traits.speed + creature.traits.speed ) / 2,
-			'strength'      : ( this.traits.strength + creature.traits.strength ) / 2
+			'strength'      : ( this.traits.strength + creature.traits.strength ) / 2,
+			'sight'         : ( this.traits.sight + creature.traits.sight ) / 2,
+			'metabolicRate' : ( this.traits.metabolicRate + creature.traits.metabolicRate ) / 2
 		};
 	};
 
@@ -130,30 +127,47 @@ define( function ( require ) {
 		};
 
 		return {
-			'metabolicRate' : options.metabolicRate + ( Math.random() * 0.01 * plusOrMinus() ),
 			'speed'         : options.speed + ( Math.random() * 0.1 * plusOrMinus() ),
-			'strength'      : options.strength + ( Math.random() * 0.01 * plusOrMinus() )
+			'strength'      : options.strength + ( Math.random() * 0.1 * plusOrMinus() ),
+			'sight'         : options.sight + ( Math.random() * 0.1 * plusOrMinus() ),
+			'metabolicRate' : options.metabolicRate + ( Math.random() * 0.1 * plusOrMinus() )
 		};
 	};
 
-	// Move the creature.
+	// Move the creature
 	// TODO: Seek out mates
 	Creature.prototype._move = function () {
+		var vector;
 
 		// Only move if there is energy
 		if ( this.energy > 0 ) {
-			var vector = this.destination.subtract( this.drawing.position );
 
-			// Create a new destination
-			if ( vector.length < 100 ) {
-				this.destination = this._getRandomPoint();
+			// Different algorithm if the creature is chasing
+			if ( this.isChasing ) {
+				vector = this.destination.subtract( this.drawing.position );
+
+				this.drawing.position = this.drawing.position.add( vector.divide( this.traits.speed / 20 ) );
 			}
 
-			// Set the new position
-			this.drawing.position = this.drawing.position.add( vector.divide( this.traits.speed ) );
+			// Not chasing
+			else {
+				vector = this.destination.subtract( this.drawing.position );
+
+				// Create a new destination
+				if ( !this.isChasing && vector.length < 100 ) {
+					this.destination = this._getRandomPoint();
+				}
+
+				// Set the new position
+				this.drawing.position = this.drawing.position.add( vector.divide( this.traits.speed ) );
+			}
 
 			this._detectCollision();
-		} else {
+			this._detectBySight();
+		}
+
+		// The creature ran out of energy
+		else {
 			this.drawing.remove();
 		}
 
@@ -173,6 +187,21 @@ define( function ( require ) {
 			else {
 				this.attack( creature );
 			}
+
+		} );
+	};
+
+	Creature.prototype._detectBySight = function () {
+		this._hitTest( this.traits.sight, function ( creature ) {
+
+			// Different species
+			if ( this.traits.color !== creature.traits.color && this.size >= creature.size ) {
+				this.isChasing   = true;
+				this.destination = creature.drawing.position;
+			} else {
+				this.isChasing = false;
+			}
+
 		} );
 	};
 
@@ -214,6 +243,7 @@ define( function ( require ) {
 
 		this.drawing.fillColor = this.traits.color;
 		this.drawing.creature  = this;
+		this._originalDrawing  = this.drawing;
 	};
 
 	// Generate a random point
