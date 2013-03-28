@@ -16,6 +16,7 @@ define( function ( require ) {
 		var colors              = [ '#E8007A', '#FF6348', '#F2CB05', '#D4FF00', '#49F09F' ];
 
 		// Non-inherited attributes
+		this.id         = this._generateUid();
 		this.age        = 0;
 		this.gender     = Math.random() < 0.5 ? 'male' : 'female';
 		this.offspring  = 0;
@@ -211,6 +212,17 @@ define( function ( require ) {
 		var y = Math.floor( Math.random() * ( maxY - minY ) + minY );
 
 		return new Point( x, y );
+	};
+
+	// From `http://stackoverflow.com/questions/12223529/create-globally-unique-id-in-javascript`
+	Creature.prototype._generateUid = function () {
+		var separator = '-';
+
+		var S4 = function () {
+			return ( ( ( 1 + Math.random() ) * 0x10000 ) | 0 ).toString( 16 ).substring( 1 );
+		};
+
+		return ( S4() + S4() + separator + S4() + separator + S4() + separator + S4() + separator + S4() + S4() + S4() );
 	};
 
 	return Creature;

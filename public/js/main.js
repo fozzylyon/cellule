@@ -9,8 +9,7 @@ define( function ( require ) {
 	paper.install( window );
 
 	$( function () {
-		var canvas = document.getElementById( 'ecosystem' );
-		paper.setup( canvas );
+		paper.setup( document.getElementById( 'ecosystem' ) );
 		paper.project.view.draw();
 
 		for ( var i = 0; i < 200; i++ ) {
