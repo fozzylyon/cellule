@@ -197,14 +197,14 @@ define( function ( require ) {
 			var genderCheck = this.gender !== creature.gender;
 
 			// Chase to mate
-			if ( colorCheck && genderCheck && this.gender === 'male' && this.energy > 50 ) {
+			if ( colorCheck && genderCheck && this.gender === 'male' && this.energy > 30 ) {
 				this.isMating    = true;
 				this.isHunting   = false;
 				this.destination = creature.drawing.position;
 			}
 
 			// Chase to hunt
-			else if ( !colorCheck && this.size >= creature.size && this.energy < 40 ) {
+			else if ( !colorCheck && this.size >= creature.size && this.energy < 20 ) {
 				this.isMating    = false;
 				this.isHunting   = true;
 				this.destination = creature.drawing.position;
