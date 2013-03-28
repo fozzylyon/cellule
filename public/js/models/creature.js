@@ -81,8 +81,8 @@ define( function ( require ) {
 			this.energy     -= reproductionEnergyCost[ 0 ];
 			creature.energy -= reproductionEnergyCost[ 1 ];
 
-			this.nextMating     = this.age + 100;
-			creature.nextMating = creature.age + 100;
+			this.nextMating     = this.age + 10;
+			creature.nextMating = creature.age + 10;
 
 			this.offspring     += 1;
 			creature.offspring += 1;
@@ -172,7 +172,7 @@ define( function ( require ) {
 		}
 
 		// Use energy based upon standard rate multiplied by their metabolic rate
-		this.energy = this.energy - ( 0.0005 * this.traits.metabolicRate / 2 );
+		this.energy = this.energy - ( 0.0005 * this.traits.metabolicRate * 0.10 );
 	};
 
 	Creature.prototype._detectCollision = function () {
