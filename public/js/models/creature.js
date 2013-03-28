@@ -12,7 +12,7 @@ define( function ( require ) {
 		var maxStrength         = 100;
 		var sizeToStrengthRatio = 4 / maxStrength;
 		var minSight            = 10;
-		var maxSight            = 150;
+		var maxSight            = 300;
 		var colors              = [ '#EFEFEF', '#FF6348', '#F2CB05', '#49F09F', '#52B0ED' ];
 		var minSize             = 2;
 
@@ -154,7 +154,7 @@ define( function ( require ) {
 				vector = this.destination.subtract( this.drawing.position );
 
 				// Create a new destination
-				if ( vector.length < 100 ) {
+				if ( vector.length < 200 ) {
 					this.destination = this._getRandomPoint();
 				}
 
@@ -197,14 +197,14 @@ define( function ( require ) {
 			var genderCheck = this.gender !== creature.gender;
 
 			// Chase to mate
-			if ( colorCheck && genderCheck && this.gender === 'male' && this.energy > 30 ) {
+			if ( colorCheck && genderCheck && this.energy > 30 ) {
 				this.isMating    = true;
 				this.isHunting   = false;
 				this.destination = creature.drawing.position;
 			}
 
 			// Chase to hunt
-			else if ( !colorCheck && this.size >= creature.size && this.energy < 20 ) {
+			else if ( !colorCheck && this.size >= creature.size && this.energy < 30 ) {
 				this.isMating    = false;
 				this.isHunting   = true;
 				this.destination = creature.drawing.position;
