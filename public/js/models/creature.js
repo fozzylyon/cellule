@@ -1,9 +1,8 @@
 define( function ( require ) {
 	'use strict';
 
-	var Paper = require( 'paper' );
-	var Path  = Paper.Path;
-	var Point = Paper.Point;
+	var Paper  = require( 'paper' );
+	var toastr = require( 'toastr' );
 
 	var Creature = function ( options ) {
 		options = options || {};
@@ -13,7 +12,7 @@ define( function ( require ) {
 		var maxStrength         = 100;
 		var sizeToStrengthRatio = 4 / maxStrength;
 		var minSight            = 10;
-		var maxSight            = 50;
+		var maxSight            = 25;
 		var colors              = [ '#E8007A', '#FF6348', '#F2CB05', '#D4FF00', '#49F09F' ];
 		var minSize             = 2;
 
@@ -96,7 +95,7 @@ define( function ( require ) {
 			var child = new Creature( options );
 			creatures.push( child );
 
-			console.log( 'new ' + child.gender + ' ' + child.traits.color );
+			toastr.info( '<span style="color:' + child.traits.color + '">' + child.id + ' was born as a ' + child.traits.color + '</span>' );
 		}
 	};
 

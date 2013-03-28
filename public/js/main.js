@@ -3,8 +3,9 @@ var creatures = [];
 define( function ( require ) {
 	'use strict';
 
-	var $         = require( 'jquery' );
-	var Creature  = require( 'Creature' );
+	var $        = require( 'jquery' );
+	var toastr   = require( 'toastr' );
+	var Creature = require( 'Creature' );
 
 	paper.install( window );
 
@@ -21,7 +22,7 @@ define( function ( require ) {
 		view.onFrame = function ( event ) {
 			creatures.forEach( function ( creature, index ) {
 				if ( creature.energy < -1 ) {
-					console.log( creature.traits.color + ' died at ' + creature.age + ' with ' + creature.offspring + ' offspring' );
+					// toastr.error( 'a ' + creature.traits.color + ' (' + creature.id + ') died at the age of ' + creature.age + ' and had ' + creature.offspring + ' offspring' );
 
 					creatures.splice( index, 1);
 				}
