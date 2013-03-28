@@ -13,7 +13,7 @@ define( function ( require ) {
 		var sizeToStrengthRatio = 4 / maxStrength;
 		var minSight            = 10;
 		var maxSight            = 25;
-		var colors              = [ '#E8007A', '#FF6348', '#F2CB05', '#D4FF00', '#49F09F' ];
+		var colors              = [ '#EFEFEF', '#FF6348', '#F2CB05', '#49F09F', '#52B0ED' ];
 		var minSize             = 2;
 
 		// Non-inherited attributes
