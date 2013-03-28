@@ -12,8 +12,10 @@ define( function ( require ) {
 		var maxSpeed            = 2000;
 		var maxStrength         = 100;
 		var sizeToStrengthRatio = 4 / maxStrength;
-		var minSize             = 2;
+		var minSight            = 10;
+		var maxSight            = 20;
 		var colors              = [ '#E8007A', '#FF6348', '#F2CB05', '#D4FF00', '#49F09F' ];
+		var minSize             = 2;
 
 		// Non-inherited attributes
 		this.id         = this._generateUid();
@@ -25,9 +27,10 @@ define( function ( require ) {
 
 		// Inherited attributes
 		this.traits = {
-			'metabolicRate' : options.metabolicRate || Math.random() * 100,
 			'speed'         : options.speed         || Math.random() * ( maxSpeed - minSpeed ) + minSpeed,
 			'strength'      : options.strength      || Math.random() * maxStrength,
+			'sight'         : options.sight         || Math.floor( Math.random() * ( maxSight - minSight ) + minSight ),
+			'metabolicRate' : options.metabolicRate || Math.random() * 100,
 			'color'         : options.color         || colors[ Math.floor( Math.random() * colors.length ) ]
 		};
 
@@ -48,6 +51,7 @@ define( function ( require ) {
 		this.age += 1;
 	};
 
+	// Attack from `this` (or defend if `creature`)
 	Creature.prototype.attack = function ( creature ) {
 		if ( this.traits.strength >= creature.traits.strength ) {
 			this._addEnergy( creature.energy);
@@ -60,6 +64,7 @@ define( function ( require ) {
 		}
 	};
 
+	// Attempt to reproduce
 	Creature.prototype.reproduce = function ( creature ) {
 
 		var reproductionEnergyCost = [
@@ -97,13 +102,14 @@ define( function ( require ) {
 
 			console.log( 'new ' + child.gender + ' ' + child.traits.color );
 		}
-
 	};
 
+	// Add `energy`, but do not exceed `100`
 	Creature.prototype._addEnergy = function ( energy ) {
 		this.energy = Math.min( this.energy + energy, 100);
 	};
 
+	// Average the traits between `this` creature and `creature`
 	Creature.prototype._mergeTraits = function ( creature ) {
 		return {
 			'metabolicRate' : ( this.traits.metabolicRate + creature.traits.metabolicRate ) / 2,
@@ -112,7 +118,7 @@ define( function ( require ) {
 		};
 	};
 
-	// Returns new traits that are randomly mutated
+	// Returns new `traits` that are randomly mutated slightly
 	Creature.prototype._mutateTraits = function ( options ) {
 
 		var plusOrMinus = function () {
@@ -130,9 +136,8 @@ define( function ( require ) {
 		};
 	};
 
-	// Move the creature. Super simple for now, but will include advance features
-	// based upon "sight", ie: seeking out mates of the same color or hunting
-	// other colors
+	// Move the creature.
+	// TODO: Seek out mates
 	Creature.prototype._move = function () {
 
 		// Only move if there is energy
@@ -157,18 +162,7 @@ define( function ( require ) {
 	};
 
 	Creature.prototype._detectCollision = function () {
-		var options = {
-			'segments'  : true,
-			'stroke'    : true,
-			'fill'      : false,
-			'tolerance' : 5
-		};
-
-		var point     = new Point( this.drawing.position._x, this.drawing.position._y );
-		var collision = paper.project.activeLayer.hitTest( point, options );
-
-		if ( collision ) {
-			var creature = collision.item.creature;
+		this._hitTest( 5, function ( creature ) {
 
 			// Same species
 			if ( this.traits.color === creature.traits.color ) {
@@ -179,6 +173,26 @@ define( function ( require ) {
 			else {
 				this.attack( creature );
 			}
+		} );
+	};
+
+	Creature.prototype._hitTest = function ( tolerance, callback ) {
+		tolerance = tolerance || 5;
+
+		var options = {
+			'segments'  : true,
+			'stroke'    : true,
+			'fill'      : false,
+			'tolerance' : tolerance
+		};
+
+		var point     = new Point( this.drawing.position._x, this.drawing.position._y );
+		var collision = paper.project.activeLayer.hitTest( point, options );
+
+		if ( collision ) {
+			var creature = collision.item.creature;
+
+			callback.call( this, creature );
 		}
 	};
 
@@ -186,6 +200,7 @@ define( function ( require ) {
 		this.drawing.fillColor.hue += this.traits.strength;
 	};
 
+	// Create the initial drawing
 	Creature.prototype._createDrawing = function () {
 		var start = this.start || this._getRandomPoint();
 
@@ -201,6 +216,7 @@ define( function ( require ) {
 		this.drawing.creature  = this;
 	};
 
+	// Generate a random point
 	Creature.prototype._getRandomPoint = function () {
 		var minX = 0 + this.size + 1;
 		var maxX = view.size._width - this.size - 1;
@@ -214,6 +230,7 @@ define( function ( require ) {
 		return new Point( x, y );
 	};
 
+	// Generate a random unique ID
 	// From `http://stackoverflow.com/questions/12223529/create-globally-unique-id-in-javascript`
 	Creature.prototype._generateUid = function () {
 		var separator = '-';
