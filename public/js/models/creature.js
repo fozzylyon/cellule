@@ -19,12 +19,14 @@ define( function ( require ) {
 		// Non-inherited attributes
 		this.id         = this._generateUid();
 		this.age        = 0;
+		this.energy     = options.energy || 100;
+
 		this.gender     = Math.random() < 0.5 ? 'male' : 'female';
 		this.offspring  = 0;
-		this.nextMating = 100;
-		this.energy     = options.energy || 100;
-		this.isHunting  = false;
+		this.nextMating = 100 || options.nextMating;
+
 		this.isMating   = false;
+		this.isHunting  = false;
 
 		// Inherited attributes
 		this.traits = {
@@ -41,7 +43,7 @@ define( function ( require ) {
 			this.start = new Point( options.x, options.y );
 		}
 
-		this._createDrawing();
+		this._createGraphic();
 
 		this.destination = this._getRandomPoint();
 	};
@@ -68,8 +70,8 @@ define( function ( require ) {
 	// Attempt to reproduce
 	Creature.prototype.reproduce = function ( creature ) {
 		var reproductionEnergyCost = [
-			this.traits.metabolicRate / 2,
-			creature.traits.metabolicRate / 2
+			this.traits.metabolicRate * 0.1,
+			creature.traits.metabolicRate * 0.1
 		];
 
 		var ageCheck     = this.age > this.nextMating && creature.age > this.nextMating;
@@ -81,22 +83,23 @@ define( function ( require ) {
 			this.energy     -= reproductionEnergyCost[ 0 ];
 			creature.energy -= reproductionEnergyCost[ 1 ];
 
-			this.nextMating     = this.age + 10;
-			creature.nextMating = creature.age + 10;
+			this.nextMating     = this.age + 150;
+			creature.nextMating = creature.age + 150;
 
 			this.offspring     += 1;
 			creature.offspring += 1;
 
-			var options    = this._mutateTraits( this._mergeTraits( creature ) );
-			options.x      = this.drawing.position._x;
-			options.y      = this.drawing.position._y;
-			options.color  = this.traits.color;
-			options.energy = 25;
+			var options        = this._mutateTraits( this._mergeTraits( creature ) );
+			options.x          = this.graphic.position._x;
+			options.y          = this.graphic.position._y;
+			options.color      = this.traits.color;
+			options.energy     = 40;
+			options.nextMating = 250;
 
 			var child = new Creature( options );
 			creatures.push( child );
 
-			toastr.info( '<span style="color:' + child.traits.color + '">' + child.id + ' was born as a ' + child.traits.color + '</span>' );
+			// toastr.info( '<span style="color:' + child.traits.color + '">' + child.id + ' was born as a ' + child.traits.color + '</span>' );
 		}
 	};
 
@@ -119,23 +122,18 @@ define( function ( require ) {
 	Creature.prototype._mutateTraits = function ( options ) {
 
 		var plusOrMinus = function () {
-			if ( Math.random() < 0.5 ) {
-				return -1;
-			} else {
-				return 1;
-			}
+			return Math.random() < 0.5 ? -1 : 1;
 		};
 
 		return {
-			'speed'         : options.speed + ( Math.random() * 0.1 * plusOrMinus() ),
-			'strength'      : options.strength + ( Math.random() * 0.1 * plusOrMinus() ),
-			'sight'         : options.sight + ( Math.random() * 0.1 * plusOrMinus() ),
-			'metabolicRate' : options.metabolicRate + ( Math.random() * 0.1 * plusOrMinus() )
+			'speed'         : options.speed + ( Math.random() * 10 * plusOrMinus() ),
+			'strength'      : options.strength + ( Math.random() * 10 * plusOrMinus() ),
+			'sight'         : options.sight + ( Math.random() * 10 * plusOrMinus() ),
+			'metabolicRate' : options.metabolicRate + ( Math.random() * 10 * plusOrMinus() )
 		};
 	};
 
 	// Move the creature
-	// TODO: Seek out mates
 	Creature.prototype._move = function () {
 		var vector;
 
@@ -144,22 +142,22 @@ define( function ( require ) {
 
 			// Different algorithm if the creature is chasing
 			if ( this.isHunting || this.isMating ) {
-				vector = this.destination.subtract( this.drawing.position );
+				vector = this.destination.subtract( this.graphic.position );
 
-				this.drawing.position = this.drawing.position.add( vector.divide( this.traits.speed / 20 ) );
+				this.graphic.position = this.graphic.position.add( vector.divide( this.traits.speed / 20 ) );
 			}
 
 			// Not chasing
 			else {
-				vector = this.destination.subtract( this.drawing.position );
+				vector = this.destination.subtract( this.graphic.position );
 
 				// Create a new destination
-				if ( vector.length < 200 ) {
+				if ( vector.length < 25 ) {
 					this.destination = this._getRandomPoint();
 				}
 
 				// Set the new position
-				this.drawing.position = this.drawing.position.add( vector.divide( this.traits.speed ) );
+				this.graphic.position = this.graphic.position.add( vector.divide( this.traits.speed ) );
 			}
 
 			this._detectCollision();
@@ -168,7 +166,7 @@ define( function ( require ) {
 
 		// The creature ran out of energy
 		else {
-			this.drawing.remove();
+			this.graphic.remove();
 		}
 
 		// Use energy based upon standard rate multiplied by their metabolic rate
@@ -229,7 +227,7 @@ define( function ( require ) {
 			'tolerance' : tolerance
 		};
 
-		var point     = new Point( this.drawing.position._x, this.drawing.position._y );
+		var point     = new Point( this.graphic.position._x, this.graphic.position._y );
 		var collision = paper.project.activeLayer.hitTest( point, options );
 
 		if ( collision ) {
@@ -240,24 +238,24 @@ define( function ( require ) {
 	};
 
 	Creature.prototype._animate = function () {
-		this.drawing.fillColor.hue += this.traits.strength;
+		this.graphic.fillColor.hue += this.traits.strength;
 	};
 
 	// Create the initial drawing
-	Creature.prototype._createDrawing = function () {
+	Creature.prototype._createGraphic = function () {
 		var start = this.start || this._getRandomPoint();
 
 		if ( this.gender === 'male' ) {
 			var size      = new Size( this.size * 1.5, this.size * 1.5 );
 			var rectangle = new Rectangle( start, size );
-			this.drawing  = new Path.Rectangle( rectangle );
+			this.graphic  = new Path.Rectangle( rectangle );
 		} else {
-			this.drawing = new Path.Circle( start , this.size );
+			this.graphic = new Path.Circle( start , this.size );
 		}
 
-		this.drawing.fillColor = this.traits.color;
-		this.drawing.creature  = this;
-		this._originalDrawing  = this.drawing;
+		this.graphic.fillColor = this.traits.color;
+		this.graphic.creature  = this;
+		this._originalDrawing  = this.graphic;
 	};
 
 	// Generate a random point
