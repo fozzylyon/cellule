@@ -2,6 +2,7 @@ define( function ( require ) {
 	'use strict';
 
 	var Paper  = require( 'paper' );
+	var bean   = require( 'bean' );
 	var toastr = require( 'toastr' );
 
 	var Creature = function ( options ) {
@@ -23,21 +24,19 @@ define( function ( require ) {
 
 		this.gender     = Math.random() < 0.5 ? 'male' : 'female';
 		this.offspring  = 0;
-		this.nextMating = 100 || options.nextMating;
+		this.nextMating = 50 || options.nextMating;
 
 		this.isMating   = false;
 		this.isHunting  = false;
 
 		// Inherited attributes
-		this.traits = {
-			'speed'         : options.speed         || Math.random() * ( maxSpeed - minSpeed ) + minSpeed,
-			'strength'      : options.strength      || Math.random() * maxStrength,
-			'sight'         : options.sight         || Math.floor( Math.random() * ( maxSight - minSight ) + minSight ),
-			'metabolicRate' : options.metabolicRate || Math.random() * 100,
-			'color'         : options.color         || colors[ Math.floor( Math.random() * colors.length ) ]
-		};
+		this.speed         = options.speed         || Math.random() * ( maxSpeed - minSpeed ) + minSpeed;
+		this.strength      = options.strength      || Math.random() * maxStrength;
+		this.sight         = options.sight         || Math.floor( Math.random() * ( maxSight - minSight ) + minSight );
+		this.metabolicRate = options.metabolicRate || Math.random() * 100;
+		this.color         = options.color         || colors[ Math.floor( Math.random() * colors.length ) ];
 
-		this.size = Math.max( minSize, Math.ceil( this.traits.strength * sizeToStrengthRatio ) );
+		this.size = Math.max( minSize, Math.ceil( this.strength * sizeToStrengthRatio ) );
 
 		if ( options.x && options.y ) {
 			this.start = new Point( options.x, options.y );
@@ -56,22 +55,22 @@ define( function ( require ) {
 
 	// Attack from `this` (or defend if `creature`)
 	Creature.prototype.attack = function ( creature ) {
-		if ( this.traits.strength >= creature.traits.strength ) {
+		if ( this.strength >= creature.strength ) {
 			this._addEnergy( creature.energy);
 
-			creature.energy -= this.traits.strength;
+			creature.energy -= this.strength;
 		} else {
 			creature._addEnergy( this.energy );
 
-			this.energy -= creature.traits.strength;
+			this.energy -= creature.strength;
 		}
 	};
 
 	// Attempt to reproduce
 	Creature.prototype.reproduce = function ( creature ) {
 		var reproductionEnergyCost = [
-			this.traits.metabolicRate * 0.1,
-			creature.traits.metabolicRate * 0.1
+			this.metabolicRate * 0.1,
+			creature.metabolicRate * 0.1
 		];
 
 		var ageCheck     = this.age > this.nextMating && creature.age > this.nextMating;
@@ -83,8 +82,8 @@ define( function ( require ) {
 			this.energy     -= reproductionEnergyCost[ 0 ];
 			creature.energy -= reproductionEnergyCost[ 1 ];
 
-			this.nextMating     = this.age + 150;
-			creature.nextMating = creature.age + 150;
+			this.nextMating     = this.age + 50;
+			creature.nextMating = creature.age + 50;
 
 			this.offspring     += 1;
 			creature.offspring += 1;
@@ -92,14 +91,12 @@ define( function ( require ) {
 			var options        = this._mutateTraits( this._mergeTraits( creature ) );
 			options.x          = this.graphic.position._x;
 			options.y          = this.graphic.position._y;
-			options.color      = this.traits.color;
-			options.energy     = 40;
-			options.nextMating = 250;
+			options.color      = this.color;
+			options.energy     = 50;
+			options.nextMating = 100;
 
 			var child = new Creature( options );
-			creatures.push( child );
-
-			// toastr.info( '<span style="color:' + child.traits.color + '">' + child.id + ' was born as a ' + child.traits.color + '</span>' );
+			bean.fire( window, 'Creature:new', child );
 		}
 	};
 
@@ -111,10 +108,10 @@ define( function ( require ) {
 	// Average the traits between `this` creature and `creature`
 	Creature.prototype._mergeTraits = function ( creature ) {
 		return {
-			'speed'         : ( this.traits.speed + creature.traits.speed ) / 2,
-			'strength'      : ( this.traits.strength + creature.traits.strength ) / 2,
-			'sight'         : ( this.traits.sight + creature.traits.sight ) / 2,
-			'metabolicRate' : ( this.traits.metabolicRate + creature.traits.metabolicRate ) / 2
+			'speed'         : ( this.speed + creature.speed ) / 2,
+			'strength'      : ( this.strength + creature.strength ) / 2,
+			'sight'         : ( this.sight + creature.sight ) / 2,
+			'metabolicRate' : ( this.metabolicRate + creature.metabolicRate ) / 2
 		};
 	};
 
@@ -135,29 +132,30 @@ define( function ( require ) {
 
 	// Move the creature
 	Creature.prototype._move = function () {
-		var vector;
+		var vector, position;
 
 		// Only move if there is energy
 		if ( this.energy > 0 ) {
 
 			// Different algorithm if the creature is chasing
 			if ( this.isHunting || this.isMating ) {
-				vector = this.destination.subtract( this.graphic.position );
+				vector   = this.destination.subtract( this.graphic.position );
+				position = this.graphic.position.add( vector.divide( this.speed / 20 ) );
 
-				this.graphic.position = this.graphic.position.add( vector.divide( this.traits.speed / 20 ) );
+				this._setPosition( position );
 			}
 
 			// Not chasing
 			else {
-				vector = this.destination.subtract( this.graphic.position );
+				vector   = this.destination.subtract( this.graphic.position );
+				position = this.graphic.position.add( vector.divide( this.speed ) );
 
 				// Create a new destination
 				if ( vector.length < 25 ) {
 					this.destination = this._getRandomPoint();
 				}
 
-				// Set the new position
-				this.graphic.position = this.graphic.position.add( vector.divide( this.traits.speed ) );
+				this._setPosition( position );
 			}
 
 			this._detectCollision();
@@ -170,14 +168,19 @@ define( function ( require ) {
 		}
 
 		// Use energy based upon standard rate multiplied by their metabolic rate
-		this.energy = this.energy - ( 0.0005 * this.traits.metabolicRate * 0.10 );
+		this.energy = this.energy - ( 0.0005 * this.metabolicRate * 0.10 );
+	};
+
+	Creature.prototype._setPosition = function ( position ) {
+		this.graphic.position = position;
+		this.position         = this.graphic.position;
 	};
 
 	Creature.prototype._detectCollision = function () {
 		this._hitTest( 5, function ( creature ) {
 
 			// Same species
-			if ( this.traits.color === creature.traits.color ) {
+			if ( this.color === creature.color ) {
 				this.reproduce( creature );
 			}
 
@@ -190,22 +193,22 @@ define( function ( require ) {
 	};
 
 	Creature.prototype._detectBySight = function () {
-		this._hitTest( this.traits.sight, function ( creature ) {
-			var colorCheck  = this.traits.color === creature.traits.color;
+		this._hitTest( this.sight, function ( creature ) {
+			var colorCheck  = this.color === creature.color;
 			var genderCheck = this.gender !== creature.gender;
 
 			// Chase to mate
 			if ( colorCheck && genderCheck && this.energy > 30 ) {
 				this.isMating    = true;
 				this.isHunting   = false;
-				this.destination = creature.drawing.position;
+				this.destination = creature.graphic.position;
 			}
 
 			// Chase to hunt
 			else if ( !colorCheck && this.size >= creature.size && this.energy < 30 ) {
 				this.isMating    = false;
 				this.isHunting   = true;
-				this.destination = creature.drawing.position;
+				this.destination = creature.graphic.position;
 			}
 
 			// No mating or hunting
@@ -238,10 +241,10 @@ define( function ( require ) {
 	};
 
 	Creature.prototype._animate = function () {
-		this.graphic.fillColor.hue += this.traits.strength;
+		this.graphic.fillColor.hue += this.strength;
 	};
 
-	// Create the initial drawing
+	// Create the initial graphic
 	Creature.prototype._createGraphic = function () {
 		var start = this.start || this._getRandomPoint();
 
@@ -253,7 +256,7 @@ define( function ( require ) {
 			this.graphic = new Path.Circle( start , this.size );
 		}
 
-		this.graphic.fillColor = this.traits.color;
+		this.graphic.fillColor = this.color;
 		this.graphic.creature  = this;
 		this._originalDrawing  = this.graphic;
 	};

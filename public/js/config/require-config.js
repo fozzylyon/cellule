@@ -1,13 +1,21 @@
 require.config( {
 
 	'paths' : {
-		'paper'    : 'libs/paper',
-		'jquery'   : 'libs/jquery',
-		'toastr'   : 'libs/toastr',
-		'Creature' : 'models/creature'
+		'underscore' : 'libs/underscore',
+		'paper'      : 'libs/paper',
+		'jquery'     : 'libs/jquery',
+		'bean'       : 'libs/bean',
+		'toastr'     : 'libs/toastr',
+		'Creature'   : 'models/creature',
+		'ecosystem'  : 'ecosystem',
+		'chart'      : 'chart'
 	},
 
 	'shim' : {
+
+		'underscore' : {
+			'exports' : '_'
+		},
 
 		'paper' : {
 			'exports' : 'paper'
@@ -15,6 +23,10 @@ require.config( {
 
 		'jquery' : {
 			'exports' : '$'
+		},
+
+		'bean' : {
+			'exports' : 'bean'
 		},
 
 		'boostrap' : {
