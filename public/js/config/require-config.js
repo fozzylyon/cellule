@@ -6,8 +6,8 @@ require.config( {
 		'jquery'     : 'libs/jquery',
 		'bean'       : 'libs/bean',
 		'toastr'     : 'libs/toastr',
-		'Creature'   : 'models/creature',
-		'ecosystem'  : 'ecosystem',
+		'Cell'       : 'models/Cell',
+		'Ecosystem'  : 'Ecosystem',
 		'chart'      : 'chart'
 	},
 

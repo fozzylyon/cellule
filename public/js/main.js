@@ -4,7 +4,7 @@ define( function ( require ) {
 	'use strict';
 
 	var paper     = require( 'paper' );
-	var Ecosystem = require( 'ecosystem' );
+	var Ecosystem = require( 'Ecosystem' );
 
 	paper.install( window );
 
@@ -24,9 +24,9 @@ define( function ( require ) {
 		var collision = paper.project.activeLayer.hitTest( point, options );
 
 		if ( collision ) {
-			var creature = collision.item.creature;
+			var cell = collision.item.cell;
 
-			console.log( "click:", creature );
+			console.log( "click:", cell );
 		}
 	};
 

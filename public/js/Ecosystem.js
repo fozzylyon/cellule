@@ -4,7 +4,7 @@ define( function ( require ) {
 	var _        = require( 'underscore' );
 	var bean     = require( 'bean' );
 	var toastr   = require( 'toastr' );
-	var Creature = require( 'Creature' );
+	var Cell = require( 'Cell' );
 
 	var self;
 
@@ -26,7 +26,7 @@ define( function ( require ) {
 		view.draw();
 
 		for ( var i = 0; i < 200; i++ ) {
-			this.alive.push( new Creature() );
+			this.alive.push( new Cell() );
 		}
 		bean.fire( window, 'Ecosystem:populated' );
 
@@ -34,7 +34,7 @@ define( function ( require ) {
 
 		setInterval( this.update, 1000 );
 
-		bean.on( window, 'Creature:new', this.add );
+		bean.on( window, 'Cell:new', this.add );
 	};
 
 	Ecosystem.prototype.update = function () {
@@ -49,20 +49,20 @@ define( function ( require ) {
 	Ecosystem.prototype.tick = function ( event ) {
 		self.time += 1;
 
-		self.alive.forEach( function ( creature, index ) {
-			if ( creature.energy < -1 ) {
-				self.dead.push( creature );
+		self.alive.forEach( function ( cell, index ) {
+			if ( cell.energy < -1 ) {
+				self.dead.push( cell );
 				self.alive.splice( index, 1);
 			}
 
-			creature.step();
+			cell.step();
 		} );
 	};
 
-	Ecosystem.prototype.add = function ( creature ) {
+	Ecosystem.prototype.add = function ( cell ) {
 		self.births += 1;
 
-		self.alive.push( creature );
+		self.alive.push( cell );
 	};
 
 	Ecosystem.prototype.map = function () {
@@ -79,6 +79,7 @@ define( function ( require ) {
 		return mapped;
 	};
 
+	// TODO: Move out into a chart module that gets data from the ecosystem
 	Ecosystem.prototype._drawPopulationPieChart = function () {
 		var mapped = self.map();
 		var data   = [];

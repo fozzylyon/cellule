@@ -1,11 +1,10 @@
 define( function ( require ) {
 	'use strict';
 
-	var Paper  = require( 'paper' );
-	var bean   = require( 'bean' );
-	var toastr = require( 'toastr' );
+	var Paper = require( 'paper' );
+	var bean  = require( 'bean' );
 
-	var Creature = function ( options ) {
+	var Cell = function ( options ) {
 		options = options || {};
 
 		var minSpeed            = 1000;
@@ -30,6 +29,7 @@ define( function ( require ) {
 		this.isHunting  = false;
 
 		// Inherited attributes
+		// TODO: Move into a new Trait class
 		this.speed         = options.speed         || Math.random() * ( maxSpeed - minSpeed ) + minSpeed;
 		this.strength      = options.strength      || Math.random() * maxStrength;
 		this.sight         = options.sight         || Math.floor( Math.random() * ( maxSight - minSight ) + minSight );
@@ -47,76 +47,76 @@ define( function ( require ) {
 		this.destination = this._getRandomPoint();
 	};
 
-	Creature.prototype.step = function () {
+	Cell.prototype.step = function () {
 		this._move();
 
 		this.age += 1;
 	};
 
-	// Attack from `this` (or defend if `creature`)
-	Creature.prototype.attack = function ( creature ) {
-		if ( this.strength >= creature.strength ) {
-			this._addEnergy( creature.energy);
+	// Attack from `this` (or defend if `cell`)
+	Cell.prototype.attack = function ( cell ) {
+		if ( this.strength >= cell.strength ) {
+			this._addEnergy( cell.energy);
 
-			creature.energy -= this.strength;
+			cell.energy -= this.strength;
 		} else {
-			creature._addEnergy( this.energy );
+			cell._addEnergy( this.energy );
 
-			this.energy -= creature.strength;
+			this.energy -= cell.strength;
 		}
 	};
 
 	// Attempt to reproduce
-	Creature.prototype.reproduce = function ( creature ) {
+	Cell.prototype.reproduce = function ( cell ) {
 		var reproductionEnergyCost = [
 			this.metabolicRate * 0.1,
-			creature.metabolicRate * 0.1
+			cell.metabolicRate * 0.1
 		];
 
-		var ageCheck     = this.age > this.nextMating && creature.age > this.nextMating;
-		var energyCheck  = this.energy > reproductionEnergyCost[ 0 ] && creature.energy > reproductionEnergyCost[ 1 ];
-		var genderCheck  = this.gender !== creature.gender;
-		var chasingCheck = !this.isHunting && !creature.isHunting;
+		var ageCheck     = this.age > this.nextMating && cell.age > this.nextMating;
+		var energyCheck  = this.energy > reproductionEnergyCost[ 0 ] && cell.energy > reproductionEnergyCost[ 1 ];
+		var genderCheck  = this.gender !== cell.gender;
+		var chasingCheck = !this.isHunting && !cell.isHunting;
 
 		if ( ageCheck && energyCheck && genderCheck && chasingCheck ) {
 			this.energy     -= reproductionEnergyCost[ 0 ];
-			creature.energy -= reproductionEnergyCost[ 1 ];
+			cell.energy -= reproductionEnergyCost[ 1 ];
 
 			this.nextMating     = this.age + 50;
-			creature.nextMating = creature.age + 50;
+			cell.nextMating = cell.age + 50;
 
 			this.offspring     += 1;
-			creature.offspring += 1;
+			cell.offspring += 1;
 
-			var options        = this._mutateTraits( this._mergeTraits( creature ) );
+			var options        = this._mutateTraits( this._mergeTraits( cell ) );
 			options.x          = this.graphic.position._x;
 			options.y          = this.graphic.position._y;
 			options.color      = this.color;
 			options.energy     = 50;
 			options.nextMating = 100;
 
-			var child = new Creature( options );
-			bean.fire( window, 'Creature:new', child );
+			var child = new Cell( options );
+			bean.fire( window, 'Cell:new', child );
 		}
 	};
 
 	// Add `energy`, but do not exceed `100`
-	Creature.prototype._addEnergy = function ( energy ) {
+	Cell.prototype._addEnergy = function ( energy ) {
 		this.energy = Math.min( this.energy + energy, 100);
 	};
 
-	// Average the traits between `this` creature and `creature`
-	Creature.prototype._mergeTraits = function ( creature ) {
+	// Average the traits between `this` cell and `cell`
+	Cell.prototype._mergeTraits = function ( cell ) {
 		return {
-			'speed'         : ( this.speed + creature.speed ) / 2,
-			'strength'      : ( this.strength + creature.strength ) / 2,
-			'sight'         : ( this.sight + creature.sight ) / 2,
-			'metabolicRate' : ( this.metabolicRate + creature.metabolicRate ) / 2
+			'speed'         : ( this.speed + cell.speed ) / 2,
+			'strength'      : ( this.strength + cell.strength ) / 2,
+			'sight'         : ( this.sight + cell.sight ) / 2,
+			'metabolicRate' : ( this.metabolicRate + cell.metabolicRate ) / 2
 		};
 	};
 
 	// Returns new `traits` that are randomly mutated slightly
-	Creature.prototype._mutateTraits = function ( options ) {
+	Cell.prototype._mutateTraits = function ( options ) {
 
 		var plusOrMinus = function () {
 			return Math.random() < 0.5 ? -1 : 1;
@@ -130,14 +130,14 @@ define( function ( require ) {
 		};
 	};
 
-	// Move the creature
-	Creature.prototype._move = function () {
+	// Move the cell
+	Cell.prototype._move = function () {
 		var vector, position;
 
 		// Only move if there is energy
 		if ( this.energy > 0 ) {
 
-			// Different algorithm if the creature is chasing
+			// Different algorithm if the cell is chasing
 			if ( this.isHunting || this.isMating ) {
 				vector   = this.destination.subtract( this.graphic.position );
 				position = this.graphic.position.add( vector.divide( this.speed / 20 ) );
@@ -162,7 +162,7 @@ define( function ( require ) {
 			this._detectBySight();
 		}
 
-		// The creature ran out of energy
+		// The cell ran out of energy
 		else {
 			this.graphic.remove();
 		}
@@ -171,44 +171,44 @@ define( function ( require ) {
 		this.energy = this.energy - ( 0.0005 * this.metabolicRate * 0.10 );
 	};
 
-	Creature.prototype._setPosition = function ( position ) {
+	Cell.prototype._setPosition = function ( position ) {
 		this.graphic.position = position;
 		this.position         = this.graphic.position;
 	};
 
-	Creature.prototype._detectCollision = function () {
-		this._hitTest( 5, function ( creature ) {
+	Cell.prototype._detectCollision = function () {
+		this._hitTest( 5, function ( cell ) {
 
 			// Same species
-			if ( this.color === creature.color ) {
-				this.reproduce( creature );
+			if ( this.color === cell.color ) {
+				this.reproduce( cell );
 			}
 
 			// Different species
 			else {
-				this.attack( creature );
+				this.attack( cell );
 			}
 
 		} );
 	};
 
-	Creature.prototype._detectBySight = function () {
-		this._hitTest( this.sight, function ( creature ) {
-			var colorCheck  = this.color === creature.color;
-			var genderCheck = this.gender !== creature.gender;
+	Cell.prototype._detectBySight = function () {
+		this._hitTest( this.sight, function ( cell ) {
+			var colorCheck  = this.color === cell.color;
+			var genderCheck = this.gender !== cell.gender;
 
 			// Chase to mate
 			if ( colorCheck && genderCheck && this.energy > 30 ) {
 				this.isMating    = true;
 				this.isHunting   = false;
-				this.destination = creature.graphic.position;
+				this.destination = cell.graphic.position;
 			}
 
 			// Chase to hunt
-			else if ( !colorCheck && this.size >= creature.size && this.energy < 30 ) {
+			else if ( !colorCheck && this.size >= cell.size && this.energy < 30 ) {
 				this.isMating    = false;
 				this.isHunting   = true;
-				this.destination = creature.graphic.position;
+				this.destination = cell.graphic.position;
 			}
 
 			// No mating or hunting
@@ -220,7 +220,7 @@ define( function ( require ) {
 		} );
 	};
 
-	Creature.prototype._hitTest = function ( tolerance, callback ) {
+	Cell.prototype._hitTest = function ( tolerance, callback ) {
 		tolerance = tolerance || 5;
 
 		var options = {
@@ -234,18 +234,18 @@ define( function ( require ) {
 		var collision = paper.project.activeLayer.hitTest( point, options );
 
 		if ( collision ) {
-			var creature = collision.item.creature;
+			var cell = collision.item.cell;
 
-			callback.call( this, creature );
+			callback.call( this, cell );
 		}
 	};
 
-	Creature.prototype._animate = function () {
+	Cell.prototype._animate = function () {
 		this.graphic.fillColor.hue += this.strength;
 	};
 
 	// Create the initial graphic
-	Creature.prototype._createGraphic = function () {
+	Cell.prototype._createGraphic = function () {
 		var start = this.start || this._getRandomPoint();
 
 		if ( this.gender === 'male' ) {
@@ -257,12 +257,12 @@ define( function ( require ) {
 		}
 
 		this.graphic.fillColor = this.color;
-		this.graphic.creature  = this;
+		this.graphic.cell  = this;
 		this._originalDrawing  = this.graphic;
 	};
 
 	// Generate a random point
-	Creature.prototype._getRandomPoint = function () {
+	Cell.prototype._getRandomPoint = function () {
 		var minX = 0 + this.size + 1;
 		var maxX = view.size._width - this.size - 1;
 
@@ -277,7 +277,7 @@ define( function ( require ) {
 
 	// Generate a random unique ID
 	// From `http://stackoverflow.com/questions/12223529/create-globally-unique-id-in-javascript`
-	Creature.prototype._generateUid = function () {
+	Cell.prototype._generateUid = function () {
 		var separator = '-';
 
 		var S4 = function () {
@@ -287,5 +287,5 @@ define( function ( require ) {
 		return ( S4() + S4() + separator + S4() + separator + S4() + separator + S4() + separator + S4() + S4() + S4() );
 	};
 
-	return Creature;
+	return Cell;
 } );
