@@ -1,17 +1,27 @@
 define( function ( require ) {
 	'use strict';
 
-	var _        = require( 'underscore' );
-	var bean     = require( 'bean' );
-	var toastr   = require( 'toastr' );
-	var Cell = require( 'Cell' );
+	var _      = require( 'underscore' );
+	var bean   = require( 'bean' );
+	var toastr = require( 'toastr' );
+	var Cell   = require( 'Cell' );
+
+	var Trait = require( 'Trait' );
+
+	var a = new Trait( 'aoeu', 4 );
+	console.log( "a.value:", a.value );
+
+	var b = new Trait( 'aoeu', 5 );
+	console.log( "b.value:", b.value );
+
+	console.log( "a.value:", a.value );
 
 	var self;
 
-	var $tick       = $( '#tick' );
 	var $population = $( '#population' );
 	var $births     = $( '#births' );
 	var $deaths     = $( '#deaths' );
+	var $tick       = $( '#tick' );
 
 	var Ecosystem = function ( elementId ) {
 		self = this;

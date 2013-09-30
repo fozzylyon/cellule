@@ -1,8 +1,8 @@
 define( function ( require ) {
 	'use strict';
 
-	var Paper = require( 'paper' );
 	var bean  = require( 'bean' );
+	var Paper = require( 'paper' );
 
 	var Cell = function ( options ) {
 		options = options || {};
