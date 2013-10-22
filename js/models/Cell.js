@@ -59,11 +59,12 @@ define( function ( require ) {
 			this._addEnergy( cell.energy);
 
 			cell.energy -= this.strength;
-		} else {
-			cell._addEnergy( this.energy );
 
-			this.energy -= cell.strength;
+			return;
 		}
+
+		cell._addEnergy( this.energy );
+		this.energy -= cell.strength;
 	};
 
 	// Attempt to reproduce
@@ -79,10 +80,10 @@ define( function ( require ) {
 		var chasingCheck = !this.isHunting && !cell.isHunting;
 
 		if ( ageCheck && energyCheck && genderCheck && chasingCheck ) {
-			this.energy     -= reproductionEnergyCost[ 0 ];
+			this.energy -= reproductionEnergyCost[ 0 ];
 			cell.energy -= reproductionEnergyCost[ 1 ];
 
-			this.nextMating     = this.age + 50;
+			this.nextMating = this.age + 50;
 			cell.nextMating = cell.age + 50;
 
 			this.offspring     += 1;
@@ -257,7 +258,7 @@ define( function ( require ) {
 		}
 
 		this.graphic.fillColor = this.color;
-		this.graphic.cell  = this;
+		this.graphic.cell      = this;
 		this._originalDrawing  = this.graphic;
 	};
 

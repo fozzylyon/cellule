@@ -6,16 +6,6 @@ define( function ( require ) {
 	var toastr = require( 'toastr' );
 	var Cell   = require( 'Cell' );
 
-	var Trait = require( 'Trait' );
-
-	var a = new Trait( 'aoeu', 4 );
-	console.log( "a.value:", a.value );
-
-	var b = new Trait( 'aoeu', 5 );
-	console.log( "b.value:", b.value );
-
-	console.log( "a.value:", a.value );
-
 	var self;
 
 	var $population = $( '#population' );
