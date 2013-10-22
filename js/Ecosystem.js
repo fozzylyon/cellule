@@ -24,8 +24,10 @@ define( function ( require ) {
 		paper.setup( document.getElementById( elementId ) );
 		paper.project.view.draw();
 		view.draw();
+		paper.project.altLayer  = new Layer();
+		paper.project.cellLayer = new Layer();
 
-		for ( var i = 0; i < 200; i++ ) {
+		for ( var i = 0; i < 500; i++ ) {
 			this.alive.push( new Cell() );
 		}
 		bean.fire( window, 'Ecosystem:populated' );

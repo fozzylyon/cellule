@@ -4,17 +4,18 @@ define( function ( require ) {
 	var bean  = require( 'bean' );
 	var Paper = require( 'paper' );
 
+	var minSpeed            = 500;
+	var maxSpeed            = 1000;
+	var maxStrength         = 100;
+	var sizeToStrengthRatio = 4 / maxStrength;
+	var minSight            = 100;
+	var maxSight            = 5000;
+	var colors              = [ '#EFEFEF', '#FF6348', '#F2CB05', '#49F09F', '#52B0ED' ];
+	var minSize             = 2;
+
 	var Cell = function ( options ) {
 		options = options || {};
 
-		var minSpeed            = 1000;
-		var maxSpeed            = 2000;
-		var maxStrength         = 100;
-		var sizeToStrengthRatio = 4 / maxStrength;
-		var minSight            = 10;
-		var maxSight            = 300;
-		var colors              = [ '#EFEFEF', '#FF6348', '#F2CB05', '#49F09F', '#52B0ED' ];
-		var minSize             = 2;
 
 		// Non-inherited attributes
 		this.id         = this._generateUid();
@@ -139,33 +140,20 @@ define( function ( require ) {
 		if ( this.energy > 0 ) {
 
 			// Different algorithm if the cell is chasing
-			if ( this.isHunting || this.isMating ) {
-				vector   = this.destination.subtract( this.graphic.position );
-				position = this.graphic.position.add( vector.divide( this.speed / 20 ) );
+			vector   = this.destination.subtract( this.graphic.position );
+			position = this.graphic.position.add( vector.divide( Math.max( this.speed / 20, minSpeed ) ) );
 
-				this._setPosition( position );
-			}
-
-			// Not chasing
-			else {
-				vector   = this.destination.subtract( this.graphic.position );
-				position = this.graphic.position.add( vector.divide( this.speed ) );
-
-				// Create a new destination
-				if ( vector.length < 25 ) {
-					this.destination = this._getRandomPoint();
-				}
-
-				this._setPosition( position );
-			}
+			this._setPosition( position );
 
 			this._detectCollision();
 			this._detectBySight();
+			this._drawTrajectory();
 		}
 
 		// The cell ran out of energy
 		else {
 			this.graphic.remove();
+			this.trajectory.remove();
 		}
 
 		// Use energy based upon standard rate multiplied by their metabolic rate
@@ -199,7 +187,7 @@ define( function ( require ) {
 			var genderCheck = this.gender !== cell.gender;
 
 			// Chase to mate
-			if ( colorCheck && genderCheck && this.energy > 30 ) {
+			if ( colorCheck && genderCheck ) {
 				this.isMating    = true;
 				this.isHunting   = false;
 				this.destination = cell.graphic.position;
@@ -259,7 +247,6 @@ define( function ( require ) {
 
 		this.graphic.fillColor = this.color;
 		this.graphic.cell      = this;
-		this._originalDrawing  = this.graphic;
 	};
 
 	// Generate a random point
@@ -286,6 +273,23 @@ define( function ( require ) {
 		};
 
 		return ( S4() + S4() + separator + S4() + separator + S4() + separator + S4() + separator + S4() + S4() + S4() );
+	};
+
+	Cell.prototype._drawTrajectory = function () {
+		if ( !this.position || !this.destination ) {
+			return;
+		}
+		if ( this.trajectory ) {
+			this.trajectory.remove();
+		}
+		this.trajectory = new Path.Line( {
+			'from'        : this.position,
+			'to'          : this.destination,
+			'strokeColor' : this.color || 'white',
+			'strokeWidth' : 0.5,
+		'dashArray' : [ 5, 2 ]
+		} );
+		paper.project.altLayer.addChild( this.trajectory );
 	};
 
 	return Cell;
