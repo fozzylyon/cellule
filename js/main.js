@@ -1,17 +1,16 @@
 define( function ( require ) {
 	'use strict';
 
-	var THREE = require( 'THREE' );
-	var Cell  = require( 'Cell' );
-
+	var $         = require( 'jquery' );
+	var THREE     = require( 'THREE' );
+	var Ecosystem = require( 'Ecosystem' );
 
 	var $ecosystem = $( '#ecosystem' );
+	var width      = window.innerWidth;
+	var height     = window.innerHeight;
+	var scene      = new THREE.Scene();
+	var camera     = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, 1, 1000 );
 
-	var width = $ecosystem.height();
-	var height = $ecosystem.width();
-
-	var scene  = new THREE.Scene();
-	var camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, 1, 1000 );
 	scene.add( camera );
 
 	var renderer = new THREE.WebGLRenderer();
@@ -22,9 +21,8 @@ define( function ( require ) {
 
 	$ecosystem.append( renderer.domElement );
 
-
 	// create a point light
-	var pointLight = new THREE.PointLight(0xFFFFFF);
+	var pointLight = new THREE.PointLight( 0xFFFFFF );
 
 	// set its position
 	pointLight.position.x = 10;
@@ -34,31 +32,18 @@ define( function ( require ) {
 	// add to the scene
 	scene.add(pointLight);
 
-	var cell = new Cell( null, { 'scene' : scene } );
-	cell.step();
-
-
-
 	// shim layer with setTimeout fallback
-	var requestAnimFrame = (function(){
-	  return  window.requestAnimationFrame       ||
-	          window.webkitRequestAnimationFrame ||
-	          window.mozRequestAnimationFrame    ||
-	          function( callback ){
-	            window.setTimeout(callback, 1000 / 60);
-	          };
-	})();
+	var requestAnimFrame = ( function () {
+		return  window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || function ( callback ) {
+			window.setTimeout(callback, 1000 / 60);
+		};
+	} )();
 
+	var ecosystem = new Ecosystem( { 'scene' : scene } );
 
-	// usage:
-	// instead of setInterval(render, 16) ....
-
-	(function render(){
-		requestAnimFrame(render);
-
-		cell.step();
+	( function render () {
+		requestAnimFrame( render );
+		ecosystem.step();
 		renderer.render( scene, camera );
-	})();
-
-
+	} )();
 } );
