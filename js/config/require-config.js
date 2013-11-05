@@ -2,24 +2,17 @@ require.config( {
 
 	'paths' : {
 		'underscore' : 'libs/underscore',
-		'paper'      : 'libs/paper',
 		'jquery'     : 'libs/jquery',
 		'bean'       : 'libs/bean',
 		'toastr'     : 'libs/toastr',
-		'Trait'       : 'models/Trait',
-		'Cell'       : 'models/Cell',
-		'Ecosystem'  : 'Ecosystem',
-		'chart'      : 'chart'
+		'THREE'      : 'libs/three',
+		'Ecosystem'  : 'Ecosystem'
 	},
 
 	'shim' : {
 
 		'underscore' : {
 			'exports' : '_'
-		},
-
-		'paper' : {
-			'exports' : 'paper'
 		},
 
 		'jquery' : {
@@ -32,6 +25,10 @@ require.config( {
 
 		'boostrap' : {
 			'deps' : [ 'jquery' ]
+		},
+
+		'THREE' : {
+			'exports' : 'THREE'
 		}
 	}
 

@@ -1,114 +1,115 @@
-define( function ( require ) {
+define( 'Ecosystem', function ( require ) {
 	'use strict';
 
-	var _      = require( 'underscore' );
-	var bean   = require( 'bean' );
-	var toastr = require( 'toastr' );
-	var Cell   = require( 'Cell' );
 
-	var self;
 
-	var $population = $( '#population' );
-	var $births     = $( '#births' );
-	var $deaths     = $( '#deaths' );
-	var $tick       = $( '#tick' );
+	var Ecosystem = {};
 
-	var Ecosystem = function ( elementId ) {
-		self = this;
 
-		this.alive  = [];
-		this.dead   = [];
-		this.births = 0;
-		this.time   = 0;
+	// var self;
 
-		paper.setup( document.getElementById( elementId ) );
-		paper.project.view.draw();
-		view.draw();
-		paper.project.altLayer  = new Layer();
-		paper.project.cellLayer = new Layer();
+	// var $population = $( '#population' );
+	// var $births     = $( '#births' );
+	// var $deaths     = $( '#deaths' );
+	// var $tick       = $( '#tick' );
 
-		for ( var i = 0; i < 500; i++ ) {
-			this.alive.push( new Cell() );
-		}
-		bean.fire( window, 'Ecosystem:populated' );
+	// var Ecosystem = function ( elementId ) {
+	// 	self = this;
 
-		view.onFrame = this.tick;
+	// 	this.alive  = [];
+	// 	this.dead   = [];
+	// 	this.births = 0;
+	// 	this.time   = 0;
 
-		setInterval( this.update, 1000 );
+	// 	console.log( "three:", three );
+	// 	paper.setup( document.getElementById( elementId ) );
+	// 	paper.project.view.draw();
+	// 	view.draw();
+	// 	paper.project.altLayer  = new Layer();
+	// 	paper.project.cellLayer = new Layer();
 
-		bean.on( window, 'Cell:new', this.add );
-	};
+	// 	for ( var i = 0; i < 200; i++ ) {
+	// 		this.alive.push( new Cell() );
+	// 	}
+	// 	bean.fire( window, 'Ecosystem:populated' );
 
-	Ecosystem.prototype.update = function () {
-		$tick.html( self.time );
-		$population.html( self.alive.length );
-		$births.html( self.births );
-		$deaths.html( self.dead.length );
+	// 	view.onFrame = this.tick;
 
-		self._drawPopulationPieChart();
-	};
+	// 	setInterval( this.update, 1000 );
 
-	Ecosystem.prototype.tick = function ( event ) {
-		self.time += 1;
+	// 	bean.on( window, 'Cell:new', this.add );
+	// };
 
-		self.alive.forEach( function ( cell, index ) {
-			if ( cell.energy < -1 ) {
-				self.dead.push( cell );
-				self.alive.splice( index, 1);
-			}
+	// Ecosystem.prototype.update = function () {
+	// 	$tick.html( self.time );
+	// 	$population.html( self.alive.length );
+	// 	$births.html( self.births );
+	// 	$deaths.html( self.dead.length );
 
-			cell.step();
-		} );
-	};
+	// 	self._drawPopulationPieChart();
+	// };
 
-	Ecosystem.prototype.add = function ( cell ) {
-		self.births += 1;
+	// Ecosystem.prototype.tick = function ( event ) {
+	// 	self.time += 1;
 
-		self.alive.push( cell );
-	};
+	// 	self.alive.forEach( function ( cell, index ) {
+	// 		if ( cell.energy < -1 ) {
+	// 			self.dead.push( cell );
+	// 			self.alive.splice( index, 1);
+	// 		}
 
-	Ecosystem.prototype.map = function () {
-		var mapped = {};
+	// 		cell.step();
+	// 	} );
+	// };
 
-		self.alive.forEach( function ( value, key ) {
-			if ( !mapped[ value.color ] ) {
-				mapped[ value.color ] = [];
-			}
+	// Ecosystem.prototype.add = function ( cell ) {
+	// 	self.births += 1;
 
-			mapped[ value.color ].push( value );
-		} );
+	// 	self.alive.push( cell );
+	// };
 
-		return mapped;
-	};
+	// Ecosystem.prototype.map = function () {
+	// 	var mapped = {};
 
-	// TODO: Move out into a chart module that gets data from the ecosystem
-	Ecosystem.prototype._drawPopulationPieChart = function () {
-		var mapped = self.map();
-		var data   = [];
+	// 	self.alive.forEach( function ( value, key ) {
+	// 		if ( !mapped[ value.color ] ) {
+	// 			mapped[ value.color ] = [];
+	// 		}
 
-		Object.keys( mapped ).forEach( function ( key ) {
-			var value = mapped[ key ];
+	// 		mapped[ value.color ].push( value );
+	// 	} );
 
-			data.push( [ key, value.length ] );
-		} );
+	// 	return mapped;
+	// };
 
-		data.unshift( [ 'Color', 'Population' ] );
+	// // TODO: Move out into a chart module that gets data from the ecosystem
+	// Ecosystem.prototype._drawPopulationPieChart = function () {
+	// 	var mapped = self.map();
+	// 	var data   = [];
 
-		var options = {
-			'colors' : Object.keys( mapped ),
-			'legend' : { 'textStyle' : { 'color' : '#EFEFEF' } },
+	// 	Object.keys( mapped ).forEach( function ( key ) {
+	// 		var value = mapped[ key ];
 
-			'backgroundColor' : {
-				'fill'   : '#000',
-				'stroke' : '#000'
-			},
-			'pieSliceBorderColor' : '#000',
-			'pieSliceTextStyle'   : { 'color' : '#000' }
-		};
+	// 		data.push( [ key, value.length ] );
+	// 	} );
 
-		var chart = new google.visualization.PieChart( document.getElementById( 'population-pie-chart' ) );
-		chart.draw( google.visualization.arrayToDataTable( data ), options );
-	};
+	// 	data.unshift( [ 'Color', 'Population' ] );
+
+	// 	var options = {
+	// 		'colors' : Object.keys( mapped ),
+	// 		'legend' : { 'textStyle' : { 'color' : '#EFEFEF' } },
+
+	// 		'backgroundColor' : {
+	// 			'fill'   : '#000',
+	// 			'stroke' : '#000'
+	// 		},
+	// 		'pieSliceBorderColor' : '#000',
+	// 		'pieSliceTextStyle'   : { 'color' : '#000' }
+	// 	};
+
+	// 	var chart = new google.visualization.PieChart( document.getElementById( 'population-pie-chart' ) );
+	// 	chart.draw( google.visualization.arrayToDataTable( data ), options );
+	// };
 
 	return Ecosystem;
 } );
