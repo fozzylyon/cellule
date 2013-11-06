@@ -5,37 +5,33 @@ define( function ( require ) {
 	var THREE = require( 'THREE' );
 	var TWEEN = require( 'TWEEN' );
 
-	var colors   = [ 0xEFEFEF, 0xFF6348, 0xF2CB05, 0x49F09F, 0x52B0ED ];
-	var min      = 1;
-	var max      = 100;
-	var minSpeed = 10;
+	var viscosity = 1000;
+	var colors    = [ 0xEFEFEF, 0xFF6348, 0xF2CB05, 0x49F09F, 0x52B0ED ];
+	var min       = 1;
+	var max       = 100;
+	var minSpeed  = 10;
 
 	var movements = [
 		TWEEN.Easing.Linear.None,
 		TWEEN.Easing.Quadratic.In,
 		TWEEN.Easing.Quadratic.Out,
 		TWEEN.Easing.Quadratic.InOut,
-		TWEEN.Easing.Cubic.In,
-		TWEEN.Easing.Cubic.Out,
-		TWEEN.Easing.Cubic.InOut,
 		TWEEN.Easing.Quartic.In,
 		TWEEN.Easing.Quartic.Out,
 		TWEEN.Easing.Quartic.InOut,
 		TWEEN.Easing.Quintic.In,
 		TWEEN.Easing.Quintic.Out,
 		TWEEN.Easing.Quintic.InOut,
-		TWEEN.Easing.Sinusoidal.In,
-		TWEEN.Easing.Sinusoidal.Out,
-		TWEEN.Easing.Sinusoidal.InOut,
+		TWEEN.Easing.Cubic.In,
+		TWEEN.Easing.Cubic.Out,
+		TWEEN.Easing.Cubic.InOut,
 		TWEEN.Easing.Exponential.In,
 		TWEEN.Easing.Exponential.Out,
 		TWEEN.Easing.Exponential.InOut,
 		TWEEN.Easing.Circular.In,
 		TWEEN.Easing.Circular.Out,
 		TWEEN.Easing.Circular.InOut,
-		TWEEN.Easing.Back.In,
-		TWEEN.Easing.Back.Out,
-		TWEEN.Easing.Back.InOut
+		TWEEN.Easing.Back.Out
 	];
 
 	var defaults = function () {
@@ -88,12 +84,20 @@ define( function ( require ) {
 		this.scene.add( this.graphic );
 	};
 
+	Cell.prototype.move = function () {
+		var self = this;
+
+		if ( this.position.x === this.target.x && this.position.y === this.target.y ) {
+			this._tween();
+		}
+	};
+
 	Cell.prototype._tween = function () {
 		this.target  = this._getRandomPoint();
 		var position = new THREE.Vector2( this.position.x, this.position.y );
 		var target   = new THREE.Vector2( this.target.x, this.target.y );
 		var distance = position.distanceTo( target );
-		var time     = distance / this.traits.speed * 1000;
+		var time     = distance / this.traits.speed * viscosity;
 		this.tween   = new TWEEN.Tween( this.position ).to( this.target, time );
 
 		this.tween.easing( this.traits.movement );
@@ -104,14 +108,6 @@ define( function ( require ) {
 		}.bind( this ) );
 
 		this.tween.start();
-	};
-
-	Cell.prototype.move = function () {
-		var self = this;
-
-		if ( this.position.x === this.target.x && this.position.y === this.target.y ) {
-			this._tween();
-		}
 	};
 
 	Cell.prototype._getRandomPoint = function () {
