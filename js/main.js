@@ -3,13 +3,14 @@ define( function ( require ) {
 
 	var $         = require( 'jquery' );
 	var THREE     = require( 'THREE' );
+	var TWEEN     = require( 'TWEEN' );
 	var Ecosystem = require( 'Ecosystem' );
 
 	var $ecosystem = $( '#ecosystem' );
 	var width      = window.innerWidth;
 	var height     = window.innerHeight;
 	var scene      = new THREE.Scene();
-	var camera     = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, 1, 1000 );
+	var camera     = new THREE.OrthographicCamera( 0, width, 0, height, 1, 1000 );
 
 	scene.add( camera );
 
@@ -44,6 +45,7 @@ define( function ( require ) {
 	( function render () {
 		requestAnimFrame( render );
 		ecosystem.step();
+		TWEEN.update();
 		renderer.render( scene, camera );
 	} )();
 } );
