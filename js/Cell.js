@@ -5,20 +5,55 @@ define( function ( require ) {
 	var THREE = require( 'THREE' );
 	var TWEEN = require( 'TWEEN' );
 
+	var colors   = [ 0xEFEFEF, 0xFF6348, 0xF2CB05, 0x49F09F, 0x52B0ED ];
+	var min      = 1;
+	var max      = 100;
+	var minSpeed = 10;
+
+	var movements = [
+		TWEEN.Easing.Linear.None,
+		TWEEN.Easing.Quadratic.In,
+		TWEEN.Easing.Quadratic.Out,
+		TWEEN.Easing.Quadratic.InOut,
+		TWEEN.Easing.Cubic.In,
+		TWEEN.Easing.Cubic.Out,
+		TWEEN.Easing.Cubic.InOut,
+		TWEEN.Easing.Quartic.In,
+		TWEEN.Easing.Quartic.Out,
+		TWEEN.Easing.Quartic.InOut,
+		TWEEN.Easing.Quintic.In,
+		TWEEN.Easing.Quintic.Out,
+		TWEEN.Easing.Quintic.InOut,
+		TWEEN.Easing.Sinusoidal.In,
+		TWEEN.Easing.Sinusoidal.Out,
+		TWEEN.Easing.Sinusoidal.InOut,
+		TWEEN.Easing.Exponential.In,
+		TWEEN.Easing.Exponential.Out,
+		TWEEN.Easing.Exponential.InOut,
+		TWEEN.Easing.Circular.In,
+		TWEEN.Easing.Circular.Out,
+		TWEEN.Easing.Circular.InOut,
+		TWEEN.Easing.Back.In,
+		TWEEN.Easing.Back.Out,
+		TWEEN.Easing.Back.InOut
+	];
+
 	var defaults = function () {
-		var colors   = [ 0xEFEFEF, 0xFF6348, 0xF2CB05, 0x49F09F, 0x52B0ED ];
-		var minSpeed = 1;
-		var maxSpeed = 100;
-		var speed    = Math.floor( Math.random() * ( maxSpeed - minSpeed ) + minSpeed );
+		var color    = colors[ Math.floor( Math.random() * colors.length ) ];
+		var strength = Math.round( Math.random() * ( max - min ) + min, 0 );
+		var size     = Math.round( Math.max( 2, Math.min( strength / 10, 5 ) ), 0 );
+		var movement = movements[ Math.floor( Math.random() * movements.length ) ];
+		var speed    = Math.floor( Math.random() * ( max - minSpeed ) + minSpeed );
+		var gender   = Math.random() < 0.5 ? 'male' : 'female';
 
 		return {
-			'color'    : colors[ Math.floor( Math.random() * colors.length ) ],
-			'size'     : 5,
-			'energy'   : 100,
-			'strength' : 100,
+			'color'    : color,
+			'strength' : strength,
+			'size'     : size,
+			'movement' : movement,
 			'speed'    : speed,
-			'gender'   : Math.random() < 0.5 ? 'male' : 'female',
-			'sight'    : 100
+			'gender'   : gender,
+			'energy'   : 100
 		};
 	};
 
@@ -60,6 +95,8 @@ define( function ( require ) {
 		var distance = position.distanceTo( target );
 		var time     = distance / this.traits.speed * 1000;
 		this.tween   = new TWEEN.Tween( this.position ).to( this.target, time );
+
+		this.tween.easing( this.traits.movement );
 
 		this.tween.onUpdate( function() {
 			this.graphic.position.x = this.position.x;

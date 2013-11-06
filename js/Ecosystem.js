@@ -7,7 +7,7 @@ define( function ( require ) {
 		this.scene = options.scene;
 		this.cells = [];
 
-		for ( var i = 0; i < 20; i++ ) {
+		for ( var i = 0; i < 50; i++ ) {
 			this.cells.push( new Cell( null, { 'scene' : this.scene } ) );
 		}
 
