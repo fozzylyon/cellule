@@ -157,7 +157,7 @@ define( function ( require ) {
 			// // And disable that direction if we do
 			if ( collisions.length > 0 && collisions[ 0 ].distance <= 10 ) {
 				// do stuff if it collides with anything else
-				this.graphic.material.color += this.traits.color;
+				// this.graphic.material.color += this.traits.color;
 			}
 		}
 	};
