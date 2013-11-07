@@ -71,8 +71,8 @@ define( function ( require ) {
 			this.draw();
 		}
 
-		this.move();
 		this.detectRange();
+		this.move();
 	};
 
 	Cell.prototype.draw = function () {
@@ -84,6 +84,7 @@ define( function ( require ) {
 		var rings    = 12;
 		var sphere   = new THREE.SphereGeometry( this.traits.size, segments, rings );
 		this.graphic = new THREE.Mesh( sphere, graphicMaterial);
+		this.graphic.position.z = 0.5;
 
 		this.scene.add( this.graphic );
 	};
@@ -131,62 +132,63 @@ define( function ( require ) {
 
 		if ( !this.rays ) {
 			this.rays = [
-				new THREE.Vector3( 0, 0, 1 ),
-				new THREE.Vector3( 0, 1, 0 ),
-				new THREE.Vector3( 1, 0, 0 )
+				new THREE.Vector3( -1, 0, 0),
+				new THREE.Vector3( -1, 1, 0),
+				new THREE.Vector3( 0, 1, 0),
+				new THREE.Vector3( 1, 1, 0),
+				new THREE.Vector3( 1, 0, 0),
+				new THREE.Vector3( 1, -1, 0),
+				new THREE.Vector3( 0, -1, 0),
+				new THREE.Vector3( -1, -1, 0 )
 			];
 		}
 
 		var position = this.graphic.position;
-		var collisions;
+		var intersects;
 		var i;
 		// Maximum distance from the origin before we consider collision
 
-		var cells = this.getCells( this );
+		var cells = this.getCells( this.graphic.position );
 
 		// For each ray
 		for ( i = 0; i < this.rays.length; i += 1 ) {
 			// We reset the raycaster to this direction
 			this.caster.set( position, this.rays[ i ] );
-			if ( !cells.length ) {
+			if ( cells < 2 ) {
 				break;
 			}
 
 			// Test if we intersect with any obstacle mesh
-			collisions = this.caster.intersectObjects( cells );
+			intersects = this.caster.intersectObjects( cells );
 			// // And disable that direction if we do
-			if ( collisions.length > 0 && collisions[ 0 ].distance <= 10 ) {
-				// do stuff if it collides with anything else
-				// this.graphic.material.color += this.traits.color;
+			if ( intersects.length > 0 ) {
+				var intersectDistance = intersects[ 0 ].distance;
+				// console.log( "intersectDistance:", intersectDistance, this.traits.size );
+				if ( intersectDistance <= this.traits.size ) {
+					// collision
+					this.graphic.material.color = 0xffffff;
+					// console.log( 'collide' );
+				} else {
+					// in sight
+					this.graphic.material.color = 0xffcc00;
+					// console.log( 'sight' );
+				}
 			}
 		}
 	};
 
-	Cell.prototype.getCells = function ( cell ) {
+	Cell.prototype.getCells = function ( position ) {
 		// Get the obstacles array from our world
 		var cells = this.ecosystem.cells.map( function ( cell ) {
 			return cell.graphic;
 		} );
 
-
-		var position = cell.graphic.position;
-
 		// filter out cells that aren't nearby
-		var x1 = position.x;
-		var y1 = position.y;
-		var z1 = position.z;
-		var x2;
-		var y2;
-		var z2;
 		cells = _.filter( cells, function ( cell ){
 			if ( !cell || cell === cell.graphic ) {
 				return false;
 			}
-			x2 = cell.position.x;
-			y2 = cell.position.y;
-			z2 = cell.position.z;
-			var isClose = ( Math.pow( x1 - x2, 2 ) + Math.pow( y1 - y2, 2 ) + Math.pow( z1 - z2, 2 ) <= Math.pow( max / 10, 2 ) );
-			return isClose;
+			return position.distanceTo( cell.position ) <= 50;
 		}.bind( this ) );
 
 		return cells;

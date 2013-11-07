@@ -10,9 +10,9 @@ define( function ( require ) {
 
 		this.caster = new THREE.Raycaster();
 		this.caster.near = 0;
-		this.caster.far = 10;
+		this.caster.far = 100;
 
-		for ( var i = 0; i < 100; i++ ) {
+		for ( var i = 0; i < 200; i++ ) {
 			this.cells.push( new Cell( null, { 'scene' : this.scene, 'ecosystem' : this, 'caster' : this.caster } ) );
 		}
 
