@@ -7,8 +7,8 @@ define( function ( require ) {
 		this.scene = options.scene;
 		this.cells = [];
 
-		for ( var i = 0; i < 50; i++ ) {
-			this.cells.push( new Cell( null, { 'scene' : this.scene } ) );
+		for ( var i = 0; i < 200; i++ ) {
+			this.cells.push( new Cell( null, { 'scene' : this.scene, 'ecosystem' : this } ) );
 		}
 
 		this.cells.forEach( function ( cell, index ) {
@@ -20,6 +20,18 @@ define( function ( require ) {
 		this.cells.forEach( function ( cell, index ) {
 			cell.step();
 		} );
+	};
+
+	Ecosystem.prototype.getCells = function( cell ) {
+		if ( !cell || !cell.position ) {
+			return [];
+		}
+		var position = cell.position;
+		var cells = [];
+
+		this.quadrant
+
+		return cells;
 	};
 
 	return Ecosystem;

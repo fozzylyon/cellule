@@ -58,6 +58,7 @@ define( function ( require ) {
 
 		this.traits   = _.extend( defaults(), traits );
 		this.scene    = options.scene;
+		this.ecosystem = options.ecosystem;
 		this.position = this._getRandomPoint();
 
 		this._tween();
@@ -69,6 +70,7 @@ define( function ( require ) {
 		}
 
 		this.move();
+		this.detectRange();
 	};
 
 	Cell.prototype.draw = function () {
@@ -122,6 +124,80 @@ define( function ( require ) {
 
 		return { 'x' : x, 'y' : y };
 	};
+
+	Cell.prototype.detectRange = function () {
+		var distance = this.traits.size;
+
+		if ( !this.caster ) {
+			this.caster = new THREE.Raycaster();
+			this.caster.near = 0;
+			this.caster.far = distance;
+			this.rays = [
+				new THREE.Vector3( 0, 0, 1 ),
+				new THREE.Vector3( 1, 0, 1 ),
+				new THREE.Vector3( 1, 0, 0 ),
+				new THREE.Vector3( 1, 0, -1 ),
+				new THREE.Vector3( 0, 0, -1 ),
+				new THREE.Vector3( -1, 0, -1 ),
+				new THREE.Vector3( -1, 0, 0 ),
+				new THREE.Vector3( -1, 0, 1 )
+			];
+		}
+
+		var position = this.graphic.position;
+		var collisions;
+		var i;
+		// Maximum distance from the origin before we consider collision
+
+		var cells = this.getCells( this );
+
+		// For each ray
+		for ( i = 0; i < this.rays.length; i += 1 ) {
+			// We reset the raycaster to this direction
+			this.caster.set( position, this.rays[ i ] );
+			if ( !cells.length ) {
+				break;
+			}
+
+			// Test if we intersect with any obstacle mesh
+			collisions = this.caster.intersectObjects( cells );
+			// // And disable that direction if we do
+			if ( collisions.length > 0 && collisions[ 0 ].distance <= distance ) {
+				// do stuff if it collides with anything else
+			}
+		}
+	};
+
+	Cell.prototype.getCells = function ( cell ) {
+		// Get the obstacles array from our world
+		var cells = this.ecosystem.cells.map( function ( cell ) {
+			return cell.graphic;
+		} );
+
+
+		var position = cell.graphic.position;
+
+		// filter out cells that aren't nearby
+		var x1 = position.x;
+		var y1 = position.y;
+		var z1 = position.z;
+		var x2;
+		var y2;
+		var z2;
+		cells = _.filter( cells, function ( cell ){
+			if ( !cell || cell === cell.graphic ) {
+				return false;
+			}
+			x2 = cell.position.x;
+			y2 = cell.position.y;
+			z2 = cell.position.z;
+			var isClose = ( Math.pow( x1 - x2, 2 ) + Math.pow( y1 - y2, 2 ) + Math.pow( z1 - z2, 2 ) <= Math.pow( max / 10, 2 ) );
+			return isClose;
+		}.bind( this ) );
+
+		return cells;
+	};
+
 
 	return Cell;
 } );
