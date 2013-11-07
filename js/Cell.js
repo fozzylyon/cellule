@@ -5,6 +5,7 @@ define( function ( require ) {
 	var THREE = require( 'THREE' );
 	var TWEEN = require( 'TWEEN' );
 
+
 	var viscosity = 1000;
 	var colors    = [ 0xEFEFEF, 0xFF6348, 0xF2CB05, 0x49F09F, 0x52B0ED ];
 	var min       = 1;
@@ -56,10 +57,11 @@ define( function ( require ) {
 	var Cell = function ( traits, options ) {
 		var self = this;
 
-		this.traits   = _.extend( defaults(), traits );
-		this.scene    = options.scene;
+		this.traits    = _.extend( defaults(), traits );
+		this.scene     = options.scene;
 		this.ecosystem = options.ecosystem;
-		this.position = this._getRandomPoint();
+		this.caster    = options.caster;
+		this.position  = this._getRandomPoint();
 
 		this._tween();
 	};
@@ -126,21 +128,12 @@ define( function ( require ) {
 	};
 
 	Cell.prototype.detectRange = function () {
-		var distance = this.traits.size;
 
-		if ( !this.caster ) {
-			this.caster = new THREE.Raycaster();
-			this.caster.near = 0;
-			this.caster.far = distance;
+		if ( !this.rays ) {
 			this.rays = [
 				new THREE.Vector3( 0, 0, 1 ),
-				new THREE.Vector3( 1, 0, 1 ),
-				new THREE.Vector3( 1, 0, 0 ),
-				new THREE.Vector3( 1, 0, -1 ),
-				new THREE.Vector3( 0, 0, -1 ),
-				new THREE.Vector3( -1, 0, -1 ),
-				new THREE.Vector3( -1, 0, 0 ),
-				new THREE.Vector3( -1, 0, 1 )
+				new THREE.Vector3( 0, 1, 0 ),
+				new THREE.Vector3( 1, 0, 0 )
 			];
 		}
 
@@ -162,8 +155,9 @@ define( function ( require ) {
 			// Test if we intersect with any obstacle mesh
 			collisions = this.caster.intersectObjects( cells );
 			// // And disable that direction if we do
-			if ( collisions.length > 0 && collisions[ 0 ].distance <= distance ) {
+			if ( collisions.length > 0 && collisions[ 0 ].distance <= 10 ) {
 				// do stuff if it collides with anything else
+				this.graphic.material.color += this.traits.color;
 			}
 		}
 	};

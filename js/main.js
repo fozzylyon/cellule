@@ -42,10 +42,21 @@ define( function ( require ) {
 
 	var ecosystem = new Ecosystem( { 'scene' : scene } );
 
+	// stats
+	var stats = new Stats();
+	stats.domElement.style.position = 'absolute';
+	stats.domElement.style.top = '0px';
+	$ecosystem.append( stats.domElement );
+
+
 	( function render () {
 		requestAnimFrame( render );
+		stats.update();
 		ecosystem.step();
 		TWEEN.update();
 		renderer.render( scene, camera );
 	} )();
+
+
+
 } );

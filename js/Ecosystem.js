@@ -1,14 +1,19 @@
 define( function ( require ) {
 	'use strict';
 
-	var Cell = require( 'Cell' );
+	var Cell  = require( 'Cell' );
+	var THREE = require( 'THREE' );
 
 	var Ecosystem = function ( options, step ) {
 		this.scene = options.scene;
 		this.cells = [];
 
-		for ( var i = 0; i < 200; i++ ) {
-			this.cells.push( new Cell( null, { 'scene' : this.scene, 'ecosystem' : this } ) );
+		this.caster = new THREE.Raycaster();
+		this.caster.near = 0;
+		this.caster.far = 10;
+
+		for ( var i = 0; i < 100; i++ ) {
+			this.cells.push( new Cell( null, { 'scene' : this.scene, 'ecosystem' : this, 'caster' : this.caster } ) );
 		}
 
 		this.cells.forEach( function ( cell, index ) {
@@ -28,8 +33,6 @@ define( function ( require ) {
 		}
 		var position = cell.position;
 		var cells = [];
-
-		this.quadrant
 
 		return cells;
 	};
