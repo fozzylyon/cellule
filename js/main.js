@@ -3,6 +3,7 @@ define( function ( require ) {
 
 	var $         = require( 'jquery' );
 	var THREE     = require( 'THREE' );
+	var Octree    = require( 'Octree' );
 	var TWEEN     = require( 'TWEEN' );
 	var Ecosystem = require( 'Ecosystem' );
 
@@ -10,7 +11,7 @@ define( function ( require ) {
 	var width      = window.innerWidth;
 	var height     = window.innerHeight;
 	var scene      = new THREE.Scene();
-	var camera     = new THREE.OrthographicCamera( 0, width, 0, height, 1, 1000 );
+	var camera     = new THREE.OrthographicCamera( 0, width, 0, height, .5, 1000 );//new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 500 * 100 );
 
 	scene.add( camera );
 
@@ -33,14 +34,6 @@ define( function ( require ) {
 	// add to the scene
 	scene.add(pointLight);
 
-	// shim layer with setTimeout fallback
-	var requestAnimFrame = ( function () {
-		return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || function ( callback ) {
-			window.setTimeout(callback, 1000 / 60);
-		};
-	} )();
-
-	var ecosystem = new Ecosystem( { 'scene' : scene } );
 
 	// stats
 	var stats = new Stats();
@@ -49,14 +42,50 @@ define( function ( require ) {
 	$ecosystem.append( stats.domElement );
 
 
-	( function render () {
-		requestAnimFrame( render );
-		stats.update();
-		ecosystem.step();
-		TWEEN.update();
-		renderer.render( scene, camera );
+	var requestAnimFrame = ( function () {
+		return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || function ( callback ) {
+			window.setTimeout(callback, 1000 / 60);
+		};
 	} )();
 
 
+	var ecosystem = new Ecosystem( {
+		'scene'    : scene,
+		'camera'   : camera
+	} );
+
+	var render = function () {
+
+		var timer = - Date.now() / 5000;
+
+		// camera.position.x = Math.cos( timer ) * 10000;
+		// camera.position.z = Math.sin( timer ) * 10000;
+		// camera.position.x += 1;
+		// camera.position.y += 1;
+		// camera.position.z += 1;
+		// camera.lookAt( scene.position );
+
+		renderer.render( scene, camera );
+	}
+
+	var animate = function () {
+		// note: three.js includes requestAnimationFrame shim
+		requestAnimFrame( animate );
+
+		// update ecosystem
+		ecosystem.update();
+
+		// tween
+		TWEEN.update();
+
+		// render results
+		render();
+
+		// update octree to add deferred objects
+		ecosystem.updateOctree();
+
+	};
+
+	animate();
 
 } );

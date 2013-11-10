@@ -6,6 +6,7 @@ require.config( {
 		'bean'       : 'libs/bean',
 		'toastr'     : 'libs/toastr',
 		'THREE'      : 'libs/three',
+		'Octree'     : 'libs/threeoctree',
 		'TWEEN'      : 'libs/tween',
 		'Ecosystem'  : 'Ecosystem'
 	},
@@ -30,6 +31,10 @@ require.config( {
 
 		'THREE' : {
 			'exports' : 'THREE'
+		},
+
+		'Octree' : {
+			'deps' : [ 'THREE' ]
 		},
 
 		'TWEEN' : {
