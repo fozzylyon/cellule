@@ -11,8 +11,12 @@ define( function ( require ) {
 	var width      = window.innerWidth;
 	var height     = window.innerHeight;
 	var scene      = new THREE.Scene();
-	var camera     = new THREE.OrthographicCamera( 0, width, 0, height, .5, 1000 );//new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 500 * 100 );
+	var camera     = new THREE.OrthographicCamera( 0, width, 0, height, 1, 1000 );
+	// var camera     = new THREE.PerspectiveCamera( 75, width / height, 1, 5000 * 100 );//new THREE.OrthographicCamera( 0, width, 0, height, .5, 1000 );
 
+	scene.position.y = height / 2;
+	scene.position.x = width / 2;
+	scene.position.z = 0.5;
 	scene.add( camera );
 
 	var renderer = new THREE.WebGLRenderer();
@@ -36,10 +40,10 @@ define( function ( require ) {
 
 
 	// stats
-	var stats = new Stats();
-	stats.domElement.style.position = 'absolute';
-	stats.domElement.style.top = '0px';
-	$ecosystem.append( stats.domElement );
+	// var stats = new Stats();
+	// stats.domElement.style.position = 'absolute';
+	// stats.domElement.style.top = '0px';
+	// $ecosystem.append( stats.domElement );
 
 
 	var requestAnimFrame = ( function () {
@@ -56,17 +60,14 @@ define( function ( require ) {
 
 	var render = function () {
 
-		var timer = - Date.now() / 5000;
-
-		// camera.position.x = Math.cos( timer ) * 10000;
-		// camera.position.z = Math.sin( timer ) * 10000;
-		// camera.position.x += 1;
-		// camera.position.y += 1;
-		// camera.position.z += 1;
+		// var timer = - Date.now() / 5000;
+		// camera.position.x = Math.cos( timer ) * 1000;
+		// camera.position.y = Math.cos( timer ) * 1000;
+		// camera.position.z = Math.sin( timer ) * 1000;
 		// camera.lookAt( scene.position );
 
 		renderer.render( scene, camera );
-	}
+	};
 
 	var animate = function () {
 		// note: three.js includes requestAnimationFrame shim
@@ -87,5 +88,9 @@ define( function ( require ) {
 	};
 
 	animate();
+
+	$( '#debugger' ).on( 'click', function () {
+		debugger;
+	} );
 
 } );

@@ -8,42 +8,33 @@ define( function ( require ) {
 
 	var Ecosystem = function ( options ) {
 		this.scene = options.scene;
-		this.renderer = options.renderer;
-		this.camera = options.camera;
-		this.animateFrame = options.animateFrame;
-
-		this.cells = [];
-		// this.cellsSearch = [];
-		this.cellCountMax = 300;
-		this.radius = 5;
-		this.radiusMax = this.radius * 1;
-		this.radiusMaxHalf = this.radiusMax * 0.5;
-		this.radiusSearch = 5;
-		this.spawning = true;
 
 		this.initialize();
 	};
 
 	Ecosystem.prototype.initialize = function () {
+
+		// cell vars
+		this.cells = [];
+		this.cellCountMax = 16;
+		this.spawning = true;
+		this.intersections = [];
+
+		// search vars
+		this.radius = 20;
+		this.radiusMax = this.radius * 1.5;
+		this.radiusMaxHalf = this.radiusMax * 0.5;
+
+
 		// create octree
 		this.octree = new THREE.Octree( {
-			'radius' : this.radius,
-			'overlapPct' : 0.05,
-			'scene' : this.scene
+			'radius'     : this.radius,
+			'overlapPct' : 0.25,
+			'scene'      : this.scene
 		} );
 
 		this.rayCaster = new THREE.Raycaster();
-
-		// create object to show search radius and add to scene
-		// this.searchMesh = new THREE.Mesh(
-		// 	new THREE.SphereGeometry( this.radiusSearch ),
-		// 	new THREE.MeshBasicMaterial( {
-		// 		'color'       : 0x00FF00,
-		// 		'transparent' : true,
-		// 		'opacity'     : 0.25
-		// 	} )
-		// );
-		// this.scene.add( this.searchMesh );
+		this.rayCaster.far = this.radiusMax;
 	};
 
 	Ecosystem.prototype.spawnCell = function () {
@@ -87,27 +78,21 @@ define( function ( require ) {
 
 	Ecosystem.prototype.getPossibleIntersects = function ( cell ) {
 
-		// this.searchMesh.position.set(
-		// 			Math.random() * this.radiusMax - this.radiusMaxHalf,
-		// 			Math.random() * this.radiusMax - this.radiusMaxHalf,
-		// 			Math.random() * this.radiusMax - this.radiusMaxHalf
-		// 		);
+		this.intersections.length = 0;
 
-		// var rayCaster = new THREE.Raycaster( new THREE.Vector3().copy( this.searchMesh.position ), new THREE.Vector3( Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1 ).normalize() );
-		// this.cellsSearch = this.octree.search( rayCaster.ray.origin, this.radiusSearch, true, rayCaster.ray.direction );
-		// var intersections = rayCaster.intersectOctreeObjects( this.cellsSearch );
-		//var caster = new THREE.Raycaster( cell.position, cell.target )
-		this.rayCaster.set( new THREE.Vector3().copy( cell.position ), new THREE.Vector3().copy( cell.target ) );
+		var origin = new THREE.Vector3().copy( cell.position );
+		var end = new THREE.Vector3().copy( cell.target );
+		this.rayCaster.set( origin, end );
+		// console.log( "distance:", origin.distanceTo( end ) );
 		//var cells = this.octree.search( caster.ray.origin, 50, true, caster.ray.direction );
-		var cellSearch = this.octree.search( this.rayCaster.ray.origin, 5, true, this.rayCaster.ray.direction );
-		var intersections = this.rayCaster.intersectOctreeObjects( cellSearch );
-		if ( cellSearch.length > 1 ) console.log( "cellSearch.length:", cellSearch.length );
-		if ( intersections.length > 1 ) console.log( "intersections.length:", intersections.length );
-		// var intersections = caster.intersectOctreeObjects( cells );
-		// console.log( "intersections.length:", intersections.length );
-		// console.log( "this.cellSearch.length:", this.cellSearch.length );
-		// console.log( "cells:", cells );
-		return intersections;
+
+		var cellSearch = this.octree.search( this.rayCaster.ray.origin, this.radius, true, this.rayCaster.ray.direction );
+		console.log( "this.rayCaster.far:", this.rayCaster.far );
+		this.intersections.concat( this.rayCaster.intersectOctreeObjects( cellSearch ) );
+
+		if ( this.intersections.length > 0 ) console.log( "intersections.length:", this.intersections.length );
+
+		return this.intersections;
 	};
 
 	return Ecosystem;

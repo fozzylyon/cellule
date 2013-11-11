@@ -85,6 +85,7 @@ define( function ( require ) {
 		} else if ( this.position.x === this.target.x && this.position.y === this.target.y && this.position.z === this.target.z ) {
 			this._tween();
 		}
+		this._showPath();
 	};
 
 	Cell.prototype._tween = function () {
@@ -96,6 +97,21 @@ define( function ( require ) {
 		this.tween = new TWEEN.Tween( this.position ).to( this.target, time );
 		this.tween.easing( this.traits.movement );
 		this.tween.start();
+	};
+
+	Cell.prototype._showPath = function () {
+		if ( !this.path ) {
+			var mat = new THREE.LineDashedMaterial( {
+				'color'    : this.traits.color,
+				'opacity'  : 0.333334,
+				'transparent' : true
+			} );
+			this.path = new THREE.Line( new THREE.Geometry(), mat );
+			this.parent.add( this.path );
+		}
+		this.path.geometry.vertices = [ this.position, this.target ];
+		this.path.geometry.verticesNeedUpdate = true;
+		// this.path
 	};
 
 	Cell.prototype._getRandomPoint = function () {
