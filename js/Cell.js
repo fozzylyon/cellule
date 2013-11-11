@@ -70,7 +70,7 @@ define( function ( require ) {
 	Cell.prototype = Object.create( THREE.Mesh.prototype );
 
 	Cell.prototype._getMaterial = function () {
-		return new THREE.MeshBasicMaterial( { 'color' : this.traits.color } );
+		return new THREE.MeshPhongMaterial( { 'color' : this.traits.color } );
 	};
 
 	Cell.prototype._getGeometry = function () {
@@ -88,7 +88,6 @@ define( function ( require ) {
 		} else if ( this.position.x === this.target.x && this.position.y === this.target.y && this.position.z === this.target.z ) {
 			this._tween();
 		}
-
 		this._showPath();
 	};
 
@@ -102,14 +101,12 @@ define( function ( require ) {
 	};
 
 	Cell.prototype._showPath = function () {
-
 		if ( !this.path ) {
 			var mat = new THREE.LineDashedMaterial( {
 				'color'    : this.traits.color,
-				'opacity'  : 0.333334,
+				'opacity'  : 0.15,
 				'transparent' : true
 			} );
-
 			this.path = new THREE.Line( new THREE.Geometry(), mat );
 			this.parent.add( this.path );
 		}
@@ -139,14 +136,18 @@ define( function ( require ) {
 		var minY = Math.max( 0, this.position.y - distance );
 		var maxY = Math.min( window.innerHeight, this.position.y + distance );
 
-		return this._getRandomVector3( minX, maxX, minY, maxY );
+		var minZ = Math.max( 0, this.position.z - distance );
+		var maxZ = Math.min( window.innerHeight, this.position.z + distance );
+
+		return this._getRandomVector3( minX, maxX, minY, maxY, minZ, maxZ );
 	};
 
-	Cell.prototype._getRandomVector3 = function ( minX, maxX, minY, maxY ) {
+	Cell.prototype._getRandomVector3 = function ( minX, maxX, minY, maxY, minZ, maxZ ) {
 		var x = Math.floor( Math.random() * ( maxX - minX ) + minX );
 		var y = Math.floor( Math.random() * ( maxY - minY ) + minY );
+		var z = Math.floor( Math.random() * ( maxZ - minZ ) + minZ );
 
-		return new THREE.Vector3( x, y, 0.5 );
+		return new THREE.Vector3( x, y, z );
 	};
 
 	return Cell;
