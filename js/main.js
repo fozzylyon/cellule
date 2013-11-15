@@ -36,10 +36,10 @@ define( function ( require ) {
 
 
 	// stats
-	var stats = new Stats();
-	stats.domElement.style.position = 'absolute';
-	stats.domElement.style.top = '0px';
-	$ecosystem.append( stats.domElement );
+	// var stats = new Stats();
+	// stats.domElement.style.position = 'absolute';
+	// stats.domElement.style.top = '0px';
+	// $ecosystem.append( stats.domElement );
 
 
 	var requestAnimFrame = ( function () {

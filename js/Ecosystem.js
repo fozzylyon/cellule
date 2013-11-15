@@ -7,19 +7,20 @@ define( function ( require ) {
 	var Octree = require( 'Octree' );
 
 	var Ecosystem = function ( options ) {
-		this.scene = options.scene;
-		this.renderer = options.renderer;
-		this.camera = options.camera;
+
+		this.scene        = options.scene;
+		this.renderer     = options.renderer;
+		this.camera       = options.camera;
 		this.animateFrame = options.animateFrame;
 
-		this.cells = [];
+		this.cells          = [];
 		// this.cellsSearch = [];
-		this.cellCountMax = 300;
-		this.radius = 5;
-		this.radiusMax = this.radius * 1;
-		this.radiusMaxHalf = this.radiusMax * 0.5;
-		this.radiusSearch = 5;
-		this.spawning = true;
+		this.cellCountMax   = 300;
+		this.radius         = 5;
+		this.radiusMax      = this.radius * 1;
+		this.radiusMaxHalf  = this.radiusMax * 0.5;
+		this.radiusSearch   = 5;
+		this.spawning       = true;
 
 		this.initialize();
 	};
@@ -27,9 +28,9 @@ define( function ( require ) {
 	Ecosystem.prototype.initialize = function () {
 		// create octree
 		this.octree = new THREE.Octree( {
-			'radius' : this.radius,
+			'radius'     : this.radius,
 			'overlapPct' : 0.05,
-			'scene' : this.scene
+			'scene'      : this.scene
 		} );
 
 		this.rayCaster = new THREE.Raycaster();
@@ -101,8 +102,8 @@ define( function ( require ) {
 		//var cells = this.octree.search( caster.ray.origin, 50, true, caster.ray.direction );
 		var cellSearch = this.octree.search( this.rayCaster.ray.origin, 5, true, this.rayCaster.ray.direction );
 		var intersections = this.rayCaster.intersectOctreeObjects( cellSearch );
-		if ( cellSearch.length > 1 ) console.log( "cellSearch.length:", cellSearch.length );
-		if ( intersections.length > 1 ) console.log( "intersections.length:", intersections.length );
+		// if ( cellSearch.length > 1 ) console.log( "cellSearch.length:", cellSearch.length );
+		// if ( intersections.length > 1 ) console.log( "intersections.length:", intersections.length );
 		// var intersections = caster.intersectOctreeObjects( cells );
 		// console.log( "intersections.length:", intersections.length );
 		// console.log( "this.cellSearch.length:", this.cellSearch.length );
