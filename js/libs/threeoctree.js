@@ -788,14 +788,14 @@
 
 		// visual
 
-		if ( this.tree.scene ) {
+		// if ( this.tree.scene ) {
 
-			this.visual = new THREE.Mesh( this.tree.visualGeometry, this.tree.visualMaterial );
-			this.visual.scale.set( this.radiusOverlap * 2, this.radiusOverlap * 2, this.radiusOverlap * 2 );
-			this.visual.position.copy( this.position );
-			this.tree.scene.add( this.visual );
+		// 	this.visual = new THREE.Mesh( this.tree.visualGeometry, this.tree.visualMaterial );
+		// 	this.visual.scale.set( this.radiusOverlap * 2, this.radiusOverlap * 2, this.radiusOverlap * 2 );
+		// 	this.visual.position.copy( this.position );
+		// 	this.tree.scene.add( this.visual );
 
-		}
+		// }
 
 	};
 
