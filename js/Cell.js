@@ -54,67 +54,63 @@ define( function ( require ) {
 		};
 	};
 
-	var Cell = function ( traits, options ) {
-		var self = this;
+	var Cell = function ( geometry, material ) {
 
-		this.traits    = _.extend( defaults(), traits );
-		this.scene     = options.scene;
-		this.octree    = options.octree;
-		this.ecosystem = options.ecosystem;
-		this.rayCaster = this.ecosystem.rayCaster;
-		this.position  = this._getRandomPoint();
+		THREE.Mesh.call( this );
 
-		this._tween();
+		this.traits = defaults();
+        this.geometry = geometry !== undefined ? geometry : this._getGeometry();
+        this.material = material !== undefined ? material : this._getMaterial();
+
+        this.position = this._getRandomPoint();
+	};
+
+	Cell.prototype = Object.create( THREE.Mesh.prototype );
+
+	Cell.prototype._getMaterial = function () {
+		return new THREE.MeshPhongMaterial( { 'color' : this.traits.color } );
+	};
+
+	Cell.prototype._getGeometry = function () {
+		return new THREE.SphereGeometry( this.traits.size, 12, 12 );
 	};
 
 	Cell.prototype.update = function () {
-		if ( !this.graphic ) {
-			this.draw();
-		}
-
-		this.detectRange();
-		this.move();
+		this._detectCollisions();
+		this._move();
 	};
 
-	Cell.prototype.draw = function () {
-		var graphicMaterial = new THREE.MeshBasicMaterial( {
-			'color' : this.traits.color
-		} );
-
-		var segments = 12;
-		var rings    = 12;
-		var sphere   = new THREE.SphereGeometry( this.traits.size, segments, rings );
-		this.graphic = new THREE.Mesh( sphere, graphicMaterial);
-		this.graphic.position.z = 0.5;
-
-		this.octree.add( this.graphic );
-		this.scene.add( this.graphic );
-	};
-
-	Cell.prototype.move = function () {
-		var self = this;
-
-		if ( this.position.x === this.target.x && this.position.y === this.target.y ) {
+	Cell.prototype._move = function () {
+		if ( !this.target ) {
+			this._tween();
+		} else if ( this.position.x === this.target.x && this.position.y === this.target.y ) {
 			this._tween();
 		}
+		this._showPath();
 	};
 
 	Cell.prototype._tween = function () {
-		this.target  = this._getRandomPoint();
-		var position = new THREE.Vector2( this.position.x, this.position.y );
-		var target   = new THREE.Vector2( this.target.x, this.target.y );
-		var distance = position.distanceTo( target );
+		this.target = this._getRandomPoint();
+
+		var distance = this.position.distanceTo( this.target );
 		var time     = distance / this.traits.speed * viscosity;
-		this.tween   = new TWEEN.Tween( this.position ).to( this.target, time );
+		this.tween = new TWEEN.Tween( this.position ).to( this.target, time )
+		.easing( this.traits.movement )
+		.start();
+	};
 
-		this.tween.easing( this.traits.movement );
-
-		this.tween.onUpdate( function() {
-			this.graphic.position.x = this.position.x;
-			this.graphic.position.y = this.position.y;
-		}.bind( this ) );
-
-		this.tween.start();
+	Cell.prototype._showPath = function () {
+		if ( !this.path ) {
+			var mat = new THREE.LineDashedMaterial( {
+				'color'       : this.traits.color,
+				'opacity'     : 0.05,
+				'transparent' : true
+			} );
+			this.path = new THREE.Line( new THREE.Geometry(), mat );
+			this.parent.add( this.path );
+		}
+		this.path.geometry.vertices = [ this.position, this.target ];
+		this.path.geometry.verticesNeedUpdate = true;
 	};
 
 	Cell.prototype._getRandomPoint = function () {
@@ -124,67 +120,51 @@ define( function ( require ) {
 		var minY = 0 + this.traits.size + 1;
 		var maxY = window.innerHeight - this.traits.size - 1;
 
+		var minZ = 0 + this.traits.size + 1;
+		var maxZ = window.innerHeight - this.traits.size - 1;
+
 		var x = Math.floor( Math.random() * ( maxX - minX ) + minX );
 		var y = Math.floor( Math.random() * ( maxY - minY ) + minY );
+		var z = Math.floor( Math.random() * ( maxZ - minZ ) + minZ );
 
-		return { 'x' : x, 'y' : y };
+		return new THREE.Vector3( x, y, z );
 	};
 
-	Cell.prototype.detectRange = function () {
+	Cell.prototype._detectCollisions = function () {
 
-		if ( !this.rays ) {
-			this.rays = [
-				new THREE.Vector3( -1, 0, 0),
-				new THREE.Vector3( -1, 1, 0),
-				new THREE.Vector3( 0, 1, 0),
-				new THREE.Vector3( 1, 1, 0),
-				new THREE.Vector3( 1, 0, 0),
-				new THREE.Vector3( 1, -1, 0),
-				new THREE.Vector3( 0, -1, 0),
-				new THREE.Vector3( -1, -1, 0 )
-			];
-		}
-
-		var position = this.graphic.position;
-		var intersects;
+		var position = this.position;
+		var intersects = [];
 		var i;
 		// Maximum distance from the origin before we consider collision
 
-		var cells = this.getCells( this.graphic.position );
+		var cells = this.ecosystem.octree.search( position, 5, true );//this.getCells( this.position );
 		if ( cells.length === 1 ) {
-			return;
+			return intersects;
 		}
-		console.log( "cells.length:", cells.length );
 
 		// For each ray
-		for ( i = 0; i < this.rays.length; i += 1 ) {
+		for ( i = 0; i < this.ecosystem.rays.length; i += 1 ) {
 			// We reset the raycaster to this direction
-			this.rayCaster.set( position, this.rays[ i ] );
+			this.ecosystem.rayCaster.set( position, this.ecosystem.rays[ i ] );
 
 			// Test if we intersect with any obstacle mesh
-			intersects = this.rayCaster.intersectOctreeObjects( cells );
+			intersects = this.ecosystem.rayCaster.intersectOctreeObjects( cells );
 			// // And disable that direction if we do
 			if ( intersects.length > 0 ) {
 				var intersectDistance = intersects[ 0 ].distance;
 				// console.log( "intersectDistance:", intersectDistance, this.traits.size );
 				if ( intersectDistance <= this.traits.size ) {
 					// collision
-					this.graphic.material.color = 0xffffff;
+					// this.material.color = 0;
 					// console.log( 'collide' );
 				} else {
 					// in sight
-					// this.graphic.material.color = 0xffcc00;
+					// this.material.color = 0xffcc00;
 					// console.log( 'sight' );
 				}
 			}
 		}
 	};
-
-	Cell.prototype.getCells = function ( position ) {
-		// Get the obstacles array from our world
-		return this.octree.search( position, 10, true );
-	};
-
 
 	return Cell;
 } );
