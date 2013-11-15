@@ -7,7 +7,8 @@ define( function ( require ) {
 	var Octree = require( 'Octree' );
 
 	var Ecosystem = function ( options ) {
-		this.scene = options.scene;
+		this.scene   = options.scene;
+		this.camera  = options.camera;
 
 		this.initialize();
 	};
@@ -16,34 +17,35 @@ define( function ( require ) {
 
 		// cell vars
 		this.cells = [];
-		this.cellCountMax = 16;
+		this.cellCountMax = 5;
 		this.spawning = true;
 		this.intersections = [];
 
 		// search vars
-		this.radius = 20;
+		this.radius = 10;
 		this.radiusMax = this.radius * 1.5;
 		this.radiusMaxHalf = this.radiusMax * 0.5;
 
 
 		// create octree
 		this.octree = new THREE.Octree( {
-			'radius'     : this.radius,
-			'overlapPct' : 0.25,
-			'scene'      : this.scene
+			'radius'           : this.radius,
+			'overlapPct'       : 0.15,
+			'scene'            : this.scene,
+			'objectsThreshold' : 2
 		} );
 
 		this.rayCaster = new THREE.Raycaster();
-		this.rayCaster.far = this.radiusMax;
+		// this.rayCaster.far = this.radiusMax;
 	};
 
 	Ecosystem.prototype.spawnCell = function () {
 		// create new object
-		var cell = new Cell();
+		var cell = new Cell( null, { 'scene' : this.scene, 'octree' : this.octree, 'ecosystem' : this } );
 
 		// add new object to octree and scene
-		this.octree.add( cell );
-		this.scene.add( cell );
+		// this.octree.add( cell );
+		// this.scene.add( cell );
 
 		// store object for later
 		this.cells.push( cell );
@@ -62,10 +64,10 @@ define( function ( require ) {
 		_.each( this.cells, function ( cell ) {
 			cell.update();
 
-			var intersects = this.getPossibleIntersects( cell );
-			if ( intersects.length > 1 ) {
-				cell.material.color.setRGB( cell.material.color.r * 1.0005, cell.material.color.g * 1.0005, cell.material.color.b * 1.0005 );
-			}
+			// var intersects = this.getPossibleIntersects( cell );
+			// if ( intersects.length > 1 ) {
+			// 	cell.graphic.material.color.setRGB( cell.graphic.material.color.r * 1.5, cell.graphic.material.color.g * 1.5, cell.graphic.material.color.b * 1.5 );
+			// }
 		}.bind( this ) );
 	};
 
@@ -78,19 +80,33 @@ define( function ( require ) {
 
 	Ecosystem.prototype.getPossibleIntersects = function ( cell ) {
 
+		if ( !this.rays ) {
+			this.rays = [
+				new THREE.Vector3( -1, 0, 0),
+				new THREE.Vector3( -1, 1, 0),
+				new THREE.Vector3( 0, 1, 0),
+				new THREE.Vector3( 1, 1, 0),
+				new THREE.Vector3( 1, 0, 0),
+				new THREE.Vector3( 1, -1, 0),
+				new THREE.Vector3( 0, -1, 0),
+				new THREE.Vector3( -1, -1, 0 )
+			];
+		}
+
 		this.intersections.length = 0;
 
-		var origin = new THREE.Vector3().copy( cell.position );
-		var end = new THREE.Vector3().copy( cell.target );
-		this.rayCaster.set( origin, end );
-		// console.log( "distance:", origin.distanceTo( end ) );
-		//var cells = this.octree.search( caster.ray.origin, 50, true, caster.ray.direction );
 
-		var cellSearch = this.octree.search( this.rayCaster.ray.origin, this.radius, true, this.rayCaster.ray.direction );
-		console.log( "this.rayCaster.far:", this.rayCaster.far );
-		this.intersections.concat( this.rayCaster.intersectOctreeObjects( cellSearch ) );
+		var cellSearch = this.octree.search( cell.position, this.radius, true );
 
-		if ( this.intersections.length > 0 ) console.log( "intersections.length:", this.intersections.length );
+		this.rays.forEach( function ( ray, index ) {
+			this.rayCaster.set( cell.position, ray );
+			this.intersections.concat( this.rayCaster.intersectOctreeObjects( cellSearch ) );
+
+		}.bind( this ) );
+
+		if ( this.intersections.length > 0 ) {
+			console.log( "intersections.length:", this.intersections.length );
+		}
 
 		return this.intersections;
 	};
