@@ -11,8 +11,8 @@ define( function ( require ) {
 	var width      = window.innerWidth;
 	var height     = window.innerHeight;
 	var scene      = new THREE.Scene();
-	// var camera     = new THREE.OrthographicCamera( 0, width, 0, height, 1, 1000 );
-	var camera     = new THREE.PerspectiveCamera( 75, width / height, 1, 5000 * 100 );//new THREE.OrthographicCamera( 0, width, 0, height, .5, 1000 );
+	var camera     = new THREE.OrthographicCamera( 0, width, 0, height, 1, 1000 );
+	// var camera     = new THREE.PerspectiveCamera( 75, width / height, 1, 5000 * 100 );//new THREE.OrthographicCamera( 0, width, 0, height, .5, 1000 );
 
 	scene.position.y = height / 2;
 	scene.position.x = width / 2;
@@ -70,11 +70,11 @@ define( function ( require ) {
 
 	var render = function () {
 
-		var timer = - Date.now() / 10000;
-		camera.position.x = Math.cos( timer ) * 1000;
+		// var timer = - Date.now() / 10000;
+		// camera.position.x = Math.cos( timer ) * 1000;
 		// camera.position.y = Math.cos( timer ) * 1000;
-		camera.position.z = Math.sin( timer ) * 1000;
-		camera.lookAt( scene.position );
+		// camera.position.z = Math.sin( timer ) * 1000;
+		// camera.lookAt( scene.position );
 
 		renderer.render( scene, camera );
 	};

@@ -37,6 +37,7 @@ define( function ( require ) {
 
 	var defaults = function () {
 		var color    = colors[ Math.floor( Math.random() * colors.length ) ];
+		var sight    = Math.round( Math.random() * ( max - min ) + min, 0 );
 		var strength = Math.round( Math.random() * ( max - min ) + min, 0 );
 		var size     = Math.round( Math.max( 2, Math.min( strength / 10, 5 ) ), 0 );
 		var movement = movements[ Math.floor( Math.random() * movements.length ) ];
@@ -45,6 +46,7 @@ define( function ( require ) {
 
 		return {
 			'color'    : color,
+			'sight'    : sight,
 			'strength' : strength,
 			'size'     : size,
 			'movement' : movement,
@@ -68,24 +70,38 @@ define( function ( require ) {
 	Cell.prototype = Object.create( THREE.Mesh.prototype );
 
 	Cell.prototype._getMaterial = function () {
-		return new THREE.MeshPhongMaterial( { 'color' : this.traits.color } );
+		return new THREE.MeshBasicMaterial( { 'color' : this.traits.color } );
 	};
 
 	Cell.prototype._getGeometry = function () {
-		return new THREE.SphereGeometry( this.traits.size, 12, 12 );
+
+		if ( this.traits.gender === 'female' ) {
+			return new THREE.SphereGeometry( this.traits.size, 12, 12 );
+		}
+
+		return new THREE.CubeGeometry( this.traits.size * 1.75, this.traits.size * 1.75, this.traits.size * 1.75 );
 	};
 
 	Cell.prototype.update = function () {
 		this._detectCollisions();
+		this._resetColor();
 		this._move();
 	};
 
+	Cell.prototype._resetColor = function () {
+		setTimeout( function () {
+			this.material.color.setHex( this.traits.color );
+		}.bind( this ), 500 );
+	};
+
 	Cell.prototype._move = function () {
+
 		if ( !this.target ) {
 			this._tween();
 		} else if ( this.position.x === this.target.x && this.position.y === this.target.y ) {
 			this._tween();
 		}
+
 		this._showPath();
 	};
 
@@ -94,9 +110,10 @@ define( function ( require ) {
 
 		var distance = this.position.distanceTo( this.target );
 		var time     = distance / this.traits.speed * viscosity;
-		this.tween = new TWEEN.Tween( this.position ).to( this.target, time )
-		.easing( this.traits.movement )
-		.start();
+
+		new TWEEN.Tween( this.position ).to( this.target, time )
+			.easing( this.traits.movement )
+			.start();
 	};
 
 	Cell.prototype._showPath = function () {
@@ -106,9 +123,11 @@ define( function ( require ) {
 				'opacity'     : 0.05,
 				'transparent' : true
 			} );
+
 			this.path = new THREE.Line( new THREE.Geometry(), mat );
 			this.parent.add( this.path );
 		}
+
 		this.path.geometry.vertices = [ this.position, this.target ];
 		this.path.geometry.verticesNeedUpdate = true;
 	};
@@ -125,37 +144,49 @@ define( function ( require ) {
 
 		var x = Math.floor( Math.random() * ( maxX - minX ) + minX );
 		var y = Math.floor( Math.random() * ( maxY - minY ) + minY );
-		var z = Math.floor( Math.random() * ( maxZ - minZ ) + minZ );
+		var z = 0.5 || Math.floor( Math.random() * ( maxZ - minZ ) + minZ );
 
 		return new THREE.Vector3( x, y, z );
 	};
 
 	Cell.prototype._detectCollisions = function () {
-
-		var position = this.position;
-		var intersects = [];
 		var i;
-		// Maximum distance from the origin before we consider collision
 
-		var cells = this.ecosystem.octree.search( position, 5, true );//this.getCells( this.position );
+		var position   = this.position;
+		var intersects = [];
+
+		// Maximum distance from the origin before we consider collision
+		var cells = this.ecosystem.octree.search( position, 5, true );
 		if ( cells.length === 1 ) {
 			return intersects;
 		}
 
 		// For each ray
 		for ( i = 0; i < this.ecosystem.rays.length; i += 1 ) {
+
 			// We reset the raycaster to this direction
 			this.ecosystem.rayCaster.set( position, this.ecosystem.rays[ i ] );
 
 			// Test if we intersect with any obstacle mesh
 			intersects = this.ecosystem.rayCaster.intersectOctreeObjects( cells );
+
 			// // And disable that direction if we do
 			if ( intersects.length > 0 ) {
-				var intersectDistance = intersects[ 0 ].distance;
-				// console.log( "intersectDistance:", intersectDistance, this.traits.size );
+				var target = intersects[ 0 ];
+
+				// TODO: Loop over intersections (only does one)
+				var intersectDistance = target.distance;
 				if ( intersectDistance <= this.traits.size ) {
+
+					if (
+						this.traits.color === target.object.traits.color &&
+						this.traits.gender !== target.object.traits.gender
+					) {
+						this.ecosystem.spawnCell();
+					}
+
 					// collision
-					// this.material.color = 0;
+					this.material.color.setRGB( 1, 0, 0 );
 					// console.log( 'collide' );
 				} else {
 					// in sight

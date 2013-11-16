@@ -50,9 +50,11 @@ define( function ( require ) {
 	};
 
 	Ecosystem.prototype.spawnCell = function () {
+
 		// create new object
 		var cell = new Cell();
 		cell.ecosystem = this;
+
 		// add new object to octree and scene
 		this.octree.add( cell );
 		this.scene.add( cell );
