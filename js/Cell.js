@@ -51,29 +51,32 @@ define( function ( require ) {
 			'size'     : size,
 			'movement' : movement,
 			'speed'    : speed,
-			'gender'   : gender,
-			'energy'   : 100
+			'gender'   : gender
 		};
 	};
 
-	var Cell = function ( geometry, material ) {
+	var Cell = function ( options ) {
+		options = options || {};
 
 		THREE.Mesh.call( this );
 
-		this.traits = defaults();
-        this.geometry = geometry !== undefined ? geometry : this._getGeometry();
-        this.material = material !== undefined ? material : this._getMaterial();
-
-        this.position = this._getRandomPoint();
+		this.traits     = options.traits || defaults();
+        this.geometry   = options.geometry || this.getGeometry();
+        this.material   = options.material || this.getMaterial();
+        this.position   = options.position || this.getRandomPoint();
+        this.energy     = options.energy || 100;
+        this.nextMating = options.nextMating || 100;
+        this.canMate    = options.canMate || false;
 	};
 
 	Cell.prototype = Object.create( THREE.Mesh.prototype );
 
-	Cell.prototype._getMaterial = function () {
+	Cell.prototype.getMaterial = function () {
 		return new THREE.MeshBasicMaterial( { 'color' : this.traits.color } );
 	};
 
-	Cell.prototype._getGeometry = function () {
+	// Returns different geometry for the different genders
+	Cell.prototype.getGeometry = function () {
 
 		if ( this.traits.gender === 'female' ) {
 			return new THREE.SphereGeometry( this.traits.size, 12, 12 );
@@ -83,30 +86,71 @@ define( function ( require ) {
 	};
 
 	Cell.prototype.update = function () {
-		this._detectCollisions();
-		this._resetColor();
-		this._move();
+		this.detectCollisions();
+		this.resetColor();
+		this.move();
+
+		if ( this.ecosystem.tick > this.nextMating ) {
+			this.canMate = true;
+		}
 	};
 
-	Cell.prototype._resetColor = function () {
-		setTimeout( function () {
-			this.material.color.setHex( this.traits.color );
-		}.bind( this ), 500 );
-	};
+	Cell.prototype.reproduce = function ( mate ) {
 
-	Cell.prototype._move = function () {
+		console.log( 'check mating' );
 
-		if ( !this.target ) {
-			this._tween();
-		} else if ( this.position.x === this.target.x && this.position.y === this.target.y ) {
-			this._tween();
+		if ( !this.canMate ) {
+			return;
 		}
 
-		this._showPath();
+		if ( !mate.canMate ) {
+			return;
+		}
+
+		this.nextMating += 1000;
+		mate.nextMating += 1000;
+
+		this.canMate = false;
+		mate.canMate = false;
+
+		var cell = new Cell( {
+			'position'   : this.position.clone(),
+			'nextMating' : this.ecosystem.tick + 5000,
+			'canMate'    : false,
+
+			'traits' : {
+				'color'    : this.traits.color,
+				'sight'    : this.traits.sight,
+				'strength' : this.traits.strength,
+				'size'     : this.traits.size,
+				'movement' : this.traits.movement,
+				'speed'    : this.traits.speed,
+				'gender'   : this.traits.gender
+			}
+		} );
+
+		this.ecosystem.spawnCell( cell );
 	};
 
-	Cell.prototype._tween = function () {
-		this.target = this._getRandomPoint();
+	Cell.prototype.resetColor = function () {
+		setTimeout( function () {
+			this.material.color.setHex( this.traits.color );
+		}.bind( this ), 2000 );
+	};
+
+	Cell.prototype.move = function () {
+
+		if ( !this.target ) {
+			this.tween();
+		} else if ( this.position.x === this.target.x && this.position.y === this.target.y ) {
+			this.tween();
+		}
+
+		this.showPath();
+	};
+
+	Cell.prototype.tween = function () {
+		this.target = this.getRandomPoint();
 
 		var distance = this.position.distanceTo( this.target );
 		var time     = distance / this.traits.speed * viscosity;
@@ -116,7 +160,7 @@ define( function ( require ) {
 			.start();
 	};
 
-	Cell.prototype._showPath = function () {
+	Cell.prototype.showPath = function () {
 		if ( !this.path ) {
 			var mat = new THREE.LineDashedMaterial( {
 				'color'       : this.traits.color,
@@ -132,7 +176,7 @@ define( function ( require ) {
 		this.path.geometry.verticesNeedUpdate = true;
 	};
 
-	Cell.prototype._getRandomPoint = function () {
+	Cell.prototype.getRandomPoint = function () {
 		var minX = 0 + this.traits.size + 1;
 		var maxX = window.innerWidth - this.traits.size - 1;
 
@@ -149,7 +193,7 @@ define( function ( require ) {
 		return new THREE.Vector3( x, y, z );
 	};
 
-	Cell.prototype._detectCollisions = function () {
+	Cell.prototype.detectCollisions = function () {
 		var i;
 
 		var position   = this.position;
@@ -179,21 +223,24 @@ define( function ( require ) {
 				if ( intersectDistance <= this.traits.size ) {
 
 					if (
+						this.ecosystem.tick > this.nextMating &&
+						this.ecosystem.tick > target.object.nextMating &&
 						this.traits.color === target.object.traits.color &&
 						this.traits.gender !== target.object.traits.gender
 					) {
-						this.ecosystem.spawnCell();
+						this.reproduce( target.object );
 					}
 
 					// collision
 					this.material.color.setRGB( 1, 0, 0 );
-					// console.log( 'collide' );
+
 				} else {
 					// in sight
 					// this.material.color = 0xffcc00;
 					// console.log( 'sight' );
 				}
 			}
+
 		}
 	};
 
