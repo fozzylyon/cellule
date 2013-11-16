@@ -51,6 +51,10 @@ define( function ( require ) {
 	};
 
 	Cell.prototype.reproduce = function ( mate ) {
+		if ( this.checkMating ) {
+			return;
+		}
+		this.checkMating = true;
 
 		console.log( 'check mating' );
 
@@ -83,8 +87,9 @@ define( function ( require ) {
 				'gender'   : this.traits.gender
 			}
 		} );
-
 		this.ecosystem.spawnCell( cell );
+
+		this.checkMating = false;
 	};
 
 	Cell.prototype.resetColor = function () {
