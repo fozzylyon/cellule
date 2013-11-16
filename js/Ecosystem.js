@@ -49,11 +49,12 @@ define( function ( require ) {
 		} );
 	};
 
-	Ecosystem.prototype.spawnCell = function () {
+	Ecosystem.prototype.spawnCell = function ( options ) {
+		options = options || {};
+		options.ecosystem = this;
 
 		// create new object
-		var cell = new Cell();
-		cell.ecosystem = this;
+		var cell = new Cell( options );
 
 		// add new object to octree and scene
 		this.octree.add( cell );
@@ -61,6 +62,12 @@ define( function ( require ) {
 
 		// store object for later
 		this.cells.push( cell );
+	};
+
+	Ecosystem.prototype.removeCell = function ( cell ) {
+		this.octree.remove( cell );
+		// this.scene.remove( cell );
+		this.cells = _.without( this.cells, cell );
 	};
 
 	Ecosystem.prototype.update = function () {

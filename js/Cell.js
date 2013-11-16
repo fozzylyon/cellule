@@ -56,15 +56,18 @@ define( function ( require ) {
 		};
 	};
 
-	var Cell = function ( geometry, material ) {
+	var Cell = function ( options ) {
+		options = options || {};
+		this.ecosystem = options.ecosystem;
 
 		THREE.Mesh.call( this );
 
-		this.traits = defaults();
-        this.geometry = geometry !== undefined ? geometry : this._getGeometry();
-        this.material = material !== undefined ? material : this._getMaterial();
+		this.traits = _.extend( defaults(), options.traits );
+        this.geometry = this._getGeometry();
+        this.material = this._getMaterial();
 
-        this.position = this._getRandomPoint();
+        this.rotation.y = 0.8;
+        this.position = options.position || this._getRandomPoint();
 	};
 
 	Cell.prototype = Object.create( THREE.Mesh.prototype );
@@ -79,7 +82,7 @@ define( function ( require ) {
 			return new THREE.SphereGeometry( this.traits.size, 12, 12 );
 		}
 
-		return new THREE.CubeGeometry( this.traits.size * 1.75, this.traits.size * 1.75, this.traits.size * 1.75 );
+		return new THREE.TetrahedronGeometry( this.traits.size * 1.75, 0 );
 	};
 
 	Cell.prototype.update = function () {
@@ -90,19 +93,22 @@ define( function ( require ) {
 
 	Cell.prototype._resetColor = function () {
 		setTimeout( function () {
-			this.material.color.setHex( this.traits.color );
+			this._setColor( this.traits.color );
 		}.bind( this ), 500 );
 	};
 
-	Cell.prototype._move = function () {
+	Cell.prototype._setColor = function ( color ) {
+		this.material.color.set( color );
+	};
 
+	Cell.prototype._move = function () {
 		if ( !this.target ) {
 			this._tween();
 		} else if ( this.position.x === this.target.x && this.position.y === this.target.y ) {
 			this._tween();
 		}
 
-		this._showPath();
+		this._updatePath();
 	};
 
 	Cell.prototype._tween = function () {
@@ -116,16 +122,25 @@ define( function ( require ) {
 			.start();
 	};
 
-	Cell.prototype._showPath = function () {
-		if ( !this.path ) {
-			var mat = new THREE.LineDashedMaterial( {
-				'color'       : this.traits.color,
-				'opacity'     : 0.05,
-				'transparent' : true
-			} );
+	Cell.prototype._addPath = function () {
+		var mat = new THREE.LineDashedMaterial( {
+			'color'       : this.traits.color,
+			'opacity'     : 0.05,
+			'transparent' : true
+		} );
 
-			this.path = new THREE.Line( new THREE.Geometry(), mat );
-			this.parent.add( this.path );
+		this.path = new THREE.Line( new THREE.Geometry(), mat );
+		this.parent.add( this.path );
+	};
+
+	Cell.prototype._removePath = function () {
+		this.parent.remove( this.path );
+		this.path = null;
+	};
+
+	Cell.prototype._updatePath = function () {
+		if ( !this.path ) {
+			this._addPath();
 		}
 
 		this.path.geometry.vertices = [ this.position, this.target ];
@@ -170,28 +185,24 @@ define( function ( require ) {
 			// Test if we intersect with any obstacle mesh
 			intersects = this.ecosystem.rayCaster.intersectOctreeObjects( cells );
 
-			// // And disable that direction if we do
 			if ( intersects.length > 0 ) {
 				var target = intersects[ 0 ];
 
 				// TODO: Loop over intersections (only does one)
 				var intersectDistance = target.distance;
 				if ( intersectDistance <= this.traits.size ) {
-
+					// collision
 					if (
 						this.traits.color === target.object.traits.color &&
-						this.traits.gender !== target.object.traits.gender
+						this.traits.gender !== target.object.traits.gender &&
+						this.traits.gender === 'female'
 					) {
-						this.ecosystem.spawnCell();
+						this.ecosystem.spawnCell( { 'position' : new THREE.Vector3().copy( this.position ), 'traits' : { 'color' : this.traits.color } } );
 					}
 
-					// collision
-					this.material.color.setRGB( 1, 0, 0 );
-					// console.log( 'collide' );
+					this._setColor( 0xFF0000 );
 				} else {
 					// in sight
-					// this.material.color = 0xffcc00;
-					// console.log( 'sight' );
 				}
 			}
 		}
