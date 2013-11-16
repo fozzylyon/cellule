@@ -5,78 +5,33 @@ define( function ( require ) {
 	var THREE = require( 'THREE' );
 	var TWEEN = require( 'TWEEN' );
 
-
-	var viscosity = 1000;
-	var colors    = [ 0xEFEFEF, 0xFF6348, 0xF2CB05, 0x49F09F, 0x52B0ED ];
-	var min       = 1;
-	var max       = 100;
-	var minSpeed  = 10;
-
-	var movements = [
-		TWEEN.Easing.Linear.None,
-		TWEEN.Easing.Quadratic.In,
-		TWEEN.Easing.Quadratic.Out,
-		TWEEN.Easing.Quadratic.InOut,
-		TWEEN.Easing.Quartic.In,
-		TWEEN.Easing.Quartic.Out,
-		TWEEN.Easing.Quartic.InOut,
-		TWEEN.Easing.Quintic.In,
-		TWEEN.Easing.Quintic.Out,
-		TWEEN.Easing.Quintic.InOut,
-		TWEEN.Easing.Cubic.In,
-		TWEEN.Easing.Cubic.Out,
-		TWEEN.Easing.Cubic.InOut,
-		TWEEN.Easing.Exponential.In,
-		TWEEN.Easing.Exponential.Out,
-		TWEEN.Easing.Exponential.InOut,
-		TWEEN.Easing.Circular.In,
-		TWEEN.Easing.Circular.Out,
-		TWEEN.Easing.Circular.InOut,
-		TWEEN.Easing.Back.Out
-	];
-
-	var defaults = function () {
-		var color    = colors[ Math.floor( Math.random() * colors.length ) ];
-		var sight    = Math.round( Math.random() * ( max - min ) + min, 0 );
-		var strength = Math.round( Math.random() * ( max - min ) + min, 0 );
-		var size     = Math.round( Math.max( 2, Math.min( strength / 10, 5 ) ), 0 );
-		var movement = movements[ Math.floor( Math.random() * movements.length ) ];
-		var speed    = Math.floor( Math.random() * ( max - minSpeed ) + minSpeed );
-		var gender   = Math.random() < 0.5 ? 'male' : 'female';
-
-		return {
-			'color'    : color,
-			'sight'    : sight,
-			'strength' : strength,
-			'size'     : size,
-			'movement' : movement,
-			'speed'    : speed,
-			'gender'   : gender,
-			'energy'   : 100
-		};
-	};
+	var Traits = require( 'Traits' );
 
 	var Cell = function ( options ) {
 		options = options || {};
-		this.ecosystem = options.ecosystem;
 
 		THREE.Mesh.call( this );
 
-		this.traits = _.extend( defaults(), options.traits );
-        this.geometry = this._getGeometry();
-        this.material = this._getMaterial();
+		this.traits     = _.extend( Traits.getRandom(), options.traits );
+        this.geometry   = options.geometry || this.getGeometry();
+        this.material   = options.material || this.getMaterial();
+        this.position   = options.position || this.getRandomPoint();
+        this.energy     = options.energy || 100;
+        this.nextMating = options.nextMating || 100;
+        this.canMate    = options.canMate || false;
+        this.ecosystem  = options.ecosystem;
 
         this.rotation.y = 0.8;
-        this.position = options.position || this._getRandomPoint();
 	};
 
 	Cell.prototype = Object.create( THREE.Mesh.prototype );
 
-	Cell.prototype._getMaterial = function () {
+	Cell.prototype.getMaterial = function () {
 		return new THREE.MeshBasicMaterial( { 'color' : this.traits.color } );
 	};
 
-	Cell.prototype._getGeometry = function () {
+	// Returns different geometry for the different genders
+	Cell.prototype.getGeometry = function () {
 
 		if ( this.traits.gender === 'female' ) {
 			return new THREE.SphereGeometry( this.traits.size, 12, 12 );
@@ -86,43 +41,84 @@ define( function ( require ) {
 	};
 
 	Cell.prototype.update = function () {
-		this._detectCollisions();
-		this._resetColor();
-		this._move();
+		this.detectIntersects();
+		this.resetColor();
+		this.move();
+
+		if ( this.ecosystem.tick > this.nextMating ) {
+			this.canMate = true;
+		}
 	};
 
-	Cell.prototype._resetColor = function () {
+	Cell.prototype.reproduce = function ( mate ) {
+
+		console.log( 'check mating' );
+
+		if ( !this.canMate ) {
+			return;
+		}
+
+		if ( !mate.canMate ) {
+			return;
+		}
+
+		this.nextMating += 1000;
+		mate.nextMating += 1000;
+
+		this.canMate = false;
+		mate.canMate = false;
+
+		var cell = new Cell( {
+			'position'   : this.position.clone(),
+			'nextMating' : this.ecosystem.tick + 5000,
+			'canMate'    : false,
+
+			'traits' : {
+				'color'    : this.traits.color,
+				'sight'    : this.traits.sight,
+				'strength' : this.traits.strength,
+				'size'     : this.traits.size,
+				'movement' : this.traits.movement,
+				'speed'    : this.traits.speed,
+				'gender'   : this.traits.gender
+			}
+		} );
+
+		this.ecosystem.spawnCell( cell );
+	};
+
+	Cell.prototype.resetColor = function () {
 		setTimeout( function () {
-			this._setColor( this.traits.color );
+			this.setColor( this.traits.color );
 		}.bind( this ), 500 );
 	};
 
-	Cell.prototype._setColor = function ( color ) {
+	Cell.prototype.setColor = function ( color ) {
 		this.material.color.set( color );
 	};
 
-	Cell.prototype._move = function () {
+	Cell.prototype.move = function () {
 		if ( !this.target ) {
-			this._tween();
+			this.tween();
 		} else if ( this.position.x === this.target.x && this.position.y === this.target.y ) {
-			this._tween();
+			this.tween();
 		}
 
-		this._updatePath();
+		this.updatePath();
 	};
 
-	Cell.prototype._tween = function () {
-		this.target = this._getRandomPoint();
+	Cell.prototype.tween = function () {
+		this.target = this.getRandomPoint();
 
 		var distance = this.position.distanceTo( this.target );
-		var time     = distance / this.traits.speed * viscosity;
+		var time     = distance / this.traits.speed * this.ecosystem.viscosity;
 
 		new TWEEN.Tween( this.position ).to( this.target, time )
 			.easing( this.traits.movement )
 			.start();
 	};
 
-	Cell.prototype._addPath = function () {
+	Cell.prototype.addPath = function () {
 		var mat = new THREE.LineDashedMaterial( {
 			'color'       : this.traits.color,
 			'opacity'     : 0.05,
@@ -133,21 +129,21 @@ define( function ( require ) {
 		this.parent.add( this.path );
 	};
 
-	Cell.prototype._removePath = function () {
+	Cell.prototype.removePath = function () {
 		this.parent.remove( this.path );
 		this.path = null;
 	};
 
-	Cell.prototype._updatePath = function () {
+	Cell.prototype.updatePath = function () {
 		if ( !this.path ) {
-			this._addPath();
+			this.addPath();
 		}
 
 		this.path.geometry.vertices = [ this.position, this.target ];
 		this.path.geometry.verticesNeedUpdate = true;
 	};
 
-	Cell.prototype._getRandomPoint = function () {
+	Cell.prototype.getRandomPoint = function () {
 		var minX = 0 + this.traits.size + 1;
 		var maxX = window.innerWidth - this.traits.size - 1;
 
@@ -164,7 +160,7 @@ define( function ( require ) {
 		return new THREE.Vector3( x, y, z );
 	};
 
-	Cell.prototype._detectCollisions = function () {
+	Cell.prototype.detectIntersects = function () {
 		var i;
 
 		var position   = this.position;
@@ -186,25 +182,29 @@ define( function ( require ) {
 			intersects = this.ecosystem.rayCaster.intersectOctreeObjects( cells );
 
 			if ( intersects.length > 0 ) {
-				var target = intersects[ 0 ];
-
 				// TODO: Loop over intersections (only does one)
-				var intersectDistance = target.distance;
-				if ( intersectDistance <= this.traits.size ) {
-					// collision
-					if (
-						this.traits.color === target.object.traits.color &&
-						this.traits.gender !== target.object.traits.gender &&
-						this.traits.gender === 'female'
-					) {
-						this.ecosystem.spawnCell( { 'position' : new THREE.Vector3().copy( this.position ), 'traits' : { 'color' : this.traits.color } } );
-					}
-
-					this._setColor( 0xFF0000 );
-				} else {
-					// in sight
-				}
+				this.handleIntersect( intersects[ 0 ] );
 			}
+
+		}
+	};
+
+	Cell.prototype.handleIntersect = function ( target ) {
+		var intersectDistance = target.distance;
+		if ( intersectDistance <= this.traits.size ) {
+			// collision
+			if (
+				this.ecosystem.tick > this.nextMating &&
+				this.ecosystem.tick > target.object.nextMating &&
+				this.traits.color === target.object.traits.color &&
+				this.traits.gender !== target.object.traits.gender &&
+				this.traits.gender === 'female'
+			) {
+				this.reproduce( target.object );
+			}
+			this.setColor( 0xFF0000 );
+		} else {
+			// in sight
 		}
 	};
 

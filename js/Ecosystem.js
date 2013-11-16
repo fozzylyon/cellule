@@ -6,24 +6,31 @@ define( function ( require ) {
 	var THREE  = require( 'THREE' );
 	var Octree = require( 'Octree' );
 
+	var EcosystemConfig = require( 'EcosystemConfig' );
+
+
 	var Ecosystem = function ( options ) {
-		this.scene   = options.scene;
-		this.camera  = options.camera;
+		this.scene  = options.scene;
+		this.camera = options.camera;
+		this.tick   = 0;
 
 		this.initialize();
 	};
 
 	Ecosystem.prototype.initialize = function () {
 
+		// `ecosystem` variables
+		_.extend( this, EcosystemConfig );
+
 		// cell vars
-		this.cells = [];
-		this.cellCountMax = 50;
-		this.spawning = true;
+		this.cells         = [];
+		this.cellCountMax  = 20;
+		this.spawning      = true;
 		this.intersections = [];
 
 		// search vars
-		this.radius = 10;
-		this.radiusMax = this.radius * 1.5;
+		this.radius        = 10;
+		this.radiusMax     = this.radius * 1.5;
 		this.radiusMaxHalf = this.radiusMax * 0.5;
 
 		// ray collision
@@ -49,12 +56,11 @@ define( function ( require ) {
 		} );
 	};
 
-	Ecosystem.prototype.spawnCell = function ( options ) {
-		options = options || {};
-		options.ecosystem = this;
+	Ecosystem.prototype.spawnCell = function ( cell ) {
 
 		// create new object
-		var cell = new Cell( options );
+		cell = cell || new Cell();
+		cell.ecosystem = this;
 
 		// add new object to octree and scene
 		this.octree.add( cell );
@@ -71,10 +77,18 @@ define( function ( require ) {
 	};
 
 	Ecosystem.prototype.update = function () {
+
+		this.tick++;
+
+		if ( this.tick % 250 === 0 ) {
+			console.log( this.tick + ' ticks' );
+		}
+
 		// if at max, stop this.spawning
 		if ( this.cells.length === this.cellCountMax ) {
 			this.spawning = false;
 		}
+
 		// else spawn another
 		else if ( this.spawning === true ) {
 			this.spawnCell();
@@ -84,7 +98,6 @@ define( function ( require ) {
 			cell.update();
 		}.bind( this ) );
 	};
-
 
 	Ecosystem.prototype.updateOctree = function () {
 		this.octree.update();
