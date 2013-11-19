@@ -17,7 +17,7 @@ define( function ( require ) {
 
 	var $container = $( 'body' );
 	var scene      = new THREE.Scene();
-	var camera     = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
+	var camera     = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
 
 	// fog
 	// scene.fog = new THREE.Fog( backgroundColor, 100, 750 );
@@ -40,6 +40,8 @@ define( function ( require ) {
 	renderer.setClearColor( backgroundColor, 1 );
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	$container.append( renderer.domElement );
+
+	scene.add( new THREE.GridHelper( 1000, 50 ) );
 
 	var requestAnimFrame = ( function () {
 		return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || function ( callback ) {
