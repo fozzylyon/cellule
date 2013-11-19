@@ -20,7 +20,7 @@ define( function ( require ) {
 	var camera     = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
 
 	// fog
-	// scene.fog = new THREE.Fog( backgroundColor, 100, 750 );
+	// scene.fog = new THREE.Fog( backgroundColor, 100, 2000 );
 
 	// light
 	var light = new THREE.DirectionalLight( 0xFFFFFF );

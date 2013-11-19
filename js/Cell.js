@@ -22,7 +22,7 @@ define( function ( require ) {
 		this.canMate    = options.canMate || false;
 		this.canMove    = options.canMove || true;
 
-		this.scale = new THREE.Vector3( 0.5, 0.5, 0.5 );
+		// this.scale = new THREE.Vector3( 0.5, 0.5, 0.5 );
 		this.rotation.y = 0.8;
 	};
 
@@ -123,9 +123,9 @@ define( function ( require ) {
 		}
 
 		if ( !this.target ) {
-			this.startTween();
-		} else if ( this.position.x === this.target.x && this.position.y === this.target.y ) {
-			this.startTween();
+			return this.startTween();
+		} else if ( this.position.distanceTo( this.target ) < this.ecosystem.targetTolerance ) {
+			return this.startTween();
 		}
 
 		// this.updatePath();
@@ -202,7 +202,7 @@ define( function ( require ) {
 		var y = _.random( minY, maxY );
 		var z = _.random( minZ, maxZ );
 
-		return new THREE.Vector3( x, y, z );
+		return this.ecosystem.getRandomPosition(); //new THREE.Vector3( x, y, z );
 	};
 
 	Cell.prototype.detectIntersects = function () {

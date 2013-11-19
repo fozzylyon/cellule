@@ -43,9 +43,16 @@ require.config( {
 			'deps' : [ 'THREE' ]
 		},
 
+		'GeometryUtils' : {
+			'deps' : [ 'THREE' ]
+		},
+
 		'TWEEN' : {
 			'exports' : 'TWEEN'
 		}
-	}
+	},
+
+	'urlArgs' : 'bust=' + ( new Date() ).getTime()
+
 
 } );

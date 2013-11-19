@@ -1,10 +1,11 @@
 define( function ( require ) {
 	'use strict';
 
-	var _      = require( 'underscore' );
-	var Cell   = require( 'Cell' );
-	var THREE  = require( 'THREE' );
-	var Octree = require( 'Octree' );
+	var _             = require( 'underscore' );
+	var Cell          = require( 'Cell' );
+	var THREE         = require( 'THREE' );
+	var Octree        = require( 'Octree' );
+	var GeometryUtils = require( 'GeometryUtils' );
 
 	var EcosystemConfig = require( 'EcosystemConfig' );
 
@@ -21,6 +22,8 @@ define( function ( require ) {
 
 		// `ecosystem` variables
 		_.extend( this, EcosystemConfig );
+
+		this.geometry = new THREE.SphereGeometry( this.width, 24, 24 );
 
 		// cell vars
 		this.cells            = [];
@@ -52,8 +55,12 @@ define( function ( require ) {
 			'radius'           : this.radius,
 			'overlapPct'       : 0.15,
 			'scene'            : this.scene,
-			'objectsThreshold' : 2
+			'objectsThreshold' : 8
 		} );
+	};
+
+	Ecosystem.prototype.getRandomPosition = function () {
+		return THREE.GeometryUtils.randomPointsInGeometry( this.geometry, 1 )[ 0 ];
 	};
 
 	Ecosystem.prototype.spawnCell = function ( cell ) {
