@@ -24,7 +24,7 @@ define( function ( require ) {
 
 		// cell vars
 		this.cells            = [];
-		this.initialCellCount = 300;
+		this.initialCellCount = 200;
 		this.spawning         = true;
 		this.intersections    = [];
 
@@ -80,8 +80,7 @@ define( function ( require ) {
 		this.tick++;
 
 		if ( this.tick % 250 === 0 ) {
-			console.log( this.tick + ' ticks' );
-			console.log( "# cells:", this.cells.length );
+			console.log( this.tick + ' ticks', '(', this.cells.length, ')' );
 		}
 
 		// if at max, stop this.spawning

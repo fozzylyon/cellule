@@ -9,60 +9,43 @@ define( function ( require ) {
 	var Ecosystem       = require( 'Ecosystem' );
 	var EcosystemConfig = require( 'EcosystemConfig' );
 
-	var $container = $( 'body' );
 	var width      = EcosystemConfig.width;
 	var height     = EcosystemConfig.height;
 	var depth      = EcosystemConfig.depth;
+
+	var backgroundColor = 0x333333;
+
+	var $container = $( 'body' );
 	var scene      = new THREE.Scene();
-	var camera     = new THREE.PerspectiveCamera( 60, width / height, 1, 10000 );
+	var camera     = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
 
-	var controls = new THREE.OrbitControls( camera );
-	controls.target = new THREE.Vector3( width / 2, height / 2,  depth / 2 );
+	// fog
+	// scene.fog = new THREE.Fog( backgroundColor, 100, 750 );
 
-	scene.add( camera );
-
-	var renderer = new THREE.WebGLRenderer();
-
-	// start the renderer
-	renderer.setSize( width, height );
-
-	$container.append( renderer.domElement );
-
-	// create a directional light
-	var light = new THREE.DirectionalLight( 0xFF8888 );
-
-	// set its position
-	light.position.x = 10;
-	light.position.y = 50;
-	light.position.z = 130;
-	// add to the scene
+	// light
+	var light = new THREE.DirectionalLight( 0xFFFFFF );
+	light.position.x = width / 2;
+	light.position.y = depth / 2;
+	light.position.z = height * 2;
 	scene.add( light );
 
+	// controls
+	var controls = new THREE.OrbitControls( camera );
 
-	// create a directional light
-	var blueLight = new THREE.DirectionalLight( 0x8888FF );
-	// set its position
-	blueLight.position.x = -10;
-	blueLight.position.y = -50;
-	blueLight.position.z = -130;
+	controls.target = new THREE.Vector3( width / 2, height / 2, depth / 2 );
+	scene.add( camera );
 
-	// add to the scene
-	scene.add( blueLight );
-
-
-	// stats
-	var stats = new Stats();
-	stats.domElement.style.position = 'absolute';
-	stats.domElement.style.top = '0px';
-	$container.append( stats.domElement );
-
+	// renderer
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setClearColor( backgroundColor, 1 );
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	$container.append( renderer.domElement );
 
 	var requestAnimFrame = ( function () {
 		return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || function ( callback ) {
 			window.setTimeout(callback, 1000 / 60);
 		};
 	} )();
-
 
 	var ecosystem = new Ecosystem( {
 		'scene'    : scene,
@@ -74,23 +57,12 @@ define( function ( require ) {
 	};
 
 	var animate = function () {
-		// note: three.js includes requestAnimationFrame shim
 		requestAnimFrame( animate );
-
 		controls.update();
-
-		// update ecosystem
 		ecosystem.update();
-
-		// tween
 		TWEEN.update();
-
-		// render results
 		render();
-
-		// update octree to add deferred objects
 		ecosystem.updateOctree();
-
 	};
 
 	animate();

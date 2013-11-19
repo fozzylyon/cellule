@@ -12,24 +12,24 @@ define( function ( require ) {
 
 		THREE.Mesh.call( this );
 
-        this.ecosystem  = options.ecosystem;
+		this.ecosystem  = options.ecosystem;
 		this.traits     = _.extend( Traits.getRandom(), options.traits );
-        this.geometry   = options.geometry || this.getGeometry();
-        this.material   = options.material || this.getMaterial();
-        this.position   = options.position || this.getStartingPoint();
-        this.energy     = options.energy || 100;
-        this.nextMating = options.nextMating || 100;
-        this.canMate    = options.canMate || false;
-        this.canMove    = options.canMove || true;
+		this.geometry   = options.geometry || this.getGeometry();
+		this.material   = options.material || this.getMaterial();
+		this.position   = options.position || this.getStartingPoint();
+		this.energy     = options.energy || 100;
+		this.nextMating = options.nextMating || 100;
+		this.canMate    = options.canMate || false;
+		this.canMove    = options.canMove || true;
 
-        // this.scale = new THREE.Vector3( 3, 3, 3 );
-        this.rotation.y = 0.8;
+		this.scale = new THREE.Vector3( 0.5, 0.5, 0.5 );
+		this.rotation.y = 0.8;
 	};
 
 	Cell.prototype = Object.create( THREE.Mesh.prototype );
 
 	Cell.prototype.getMaterial = function () {
-		return new THREE.MeshPhongMaterial( { 'color' : this.traits.color } );
+		return new THREE.MeshBasicMaterial( { 'color' : this.traits.color } );
 	};
 
 	// Returns different geometry for the different genders
@@ -58,8 +58,6 @@ define( function ( require ) {
 		}
 		this.checkMating = true;
 
-		console.log( 'check mating' );
-
 		if ( !this.canMate ) {
 			return;
 		}
@@ -75,8 +73,10 @@ define( function ( require ) {
 
 		this.stop();
 
+
 		setTimeout( function () {
 			this.nextMating = this.ecosystem.tick + 1000;
+
 			var cell = new Cell( {
 				'ecosystem'  : this.ecosystem,
 				'position'   : this.position.clone(),
@@ -84,7 +84,11 @@ define( function ( require ) {
 				'canMate'    : false,
 				'traits'     : Traits.mergeTraits( this.traits, mate.traits )
 			} );
+
+			console.log( 'spawning a new cell', cell.traits );
+
 			this.ecosystem.spawnCell( cell );
+
 			this.start();
 		}.bind( this ), 5000 );
 
@@ -124,7 +128,7 @@ define( function ( require ) {
 			this.startTween();
 		}
 
-		this.updatePath();
+		// this.updatePath();
 	};
 
 	Cell.prototype.startTween = function () {

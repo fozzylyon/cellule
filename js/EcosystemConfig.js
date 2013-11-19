@@ -3,9 +3,9 @@ define( function ( require ) {
 
 	var EcosystemConfig = {
 		'viscosity' : 1000,
-		'width'     : window.innerWidth,
-		'depth'     : 1000,
-		'height'    : window.innerHeight
+		'width'     : 500,
+		'height'    : 500,
+		'depth'     : 100
 	};
 
 	return EcosystemConfig;
