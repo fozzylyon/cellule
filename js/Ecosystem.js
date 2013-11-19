@@ -23,10 +23,10 @@ define( function ( require ) {
 		_.extend( this, EcosystemConfig );
 
 		// cell vars
-		this.cells         = [];
-		this.cellCountMax  = 20;
-		this.spawning      = true;
-		this.intersections = [];
+		this.cells            = [];
+		this.initialCellCount = 100;
+		this.spawning         = true;
+		this.intersections    = [];
 
 		// search vars
 		this.radius        = 10;
@@ -82,10 +82,11 @@ define( function ( require ) {
 
 		if ( this.tick % 250 === 0 ) {
 			console.log( this.tick + ' ticks' );
+			console.log( "# cells:", this.cells.length );
 		}
 
 		// if at max, stop this.spawning
-		if ( this.cells.length === this.cellCountMax ) {
+		if ( this.cells.length === this.initialCellCount ) {
 			this.spawning = false;
 		}
 

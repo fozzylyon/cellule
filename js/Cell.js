@@ -15,12 +15,14 @@ define( function ( require ) {
 		this.traits     = _.extend( Traits.getRandom(), options.traits );
         this.geometry   = options.geometry || this.getGeometry();
         this.material   = options.material || this.getMaterial();
-        this.position   = options.position || this.getRandomPoint();
+        this.position   = options.position || this.getStartingPoint();
         this.energy     = options.energy || 100;
         this.nextMating = options.nextMating || 100;
         this.canMate    = options.canMate || false;
+        this.canMove    = options.canMove || true;
         this.ecosystem  = options.ecosystem;
 
+        // this.scale = new THREE.Vector3( 3, 3, 3 );
         this.rotation.y = 0.8;
 	};
 
@@ -66,30 +68,38 @@ define( function ( require ) {
 			return;
 		}
 
-		this.nextMating += 1000;
-		mate.nextMating += 1000;
+		mate.nextMating = this.ecosystem.tick + 1000;
 
 		this.canMate = false;
 		mate.canMate = false;
 
-		var cell = new Cell( {
-			'position'   : this.position.clone(),
-			'nextMating' : this.ecosystem.tick + 5000,
-			'canMate'    : false,
+		this.stop();
 
-			'traits' : {
-				'color'    : this.traits.color,
-				'sight'    : this.traits.sight,
-				'strength' : this.traits.strength,
-				'size'     : this.traits.size,
-				'movement' : this.traits.movement,
-				'speed'    : this.traits.speed,
-				'gender'   : this.traits.gender
-			}
-		} );
-		this.ecosystem.spawnCell( cell );
+		setTimeout( function () {
+			this.nextMating = this.ecosystem.tick + 1000;
+			var cell = new Cell( {
+				'position'   : this.position.clone(),
+				'nextMating' : this.ecosystem.tick + 5000,
+				'canMate'    : false,
+				'traits'     : Traits.mergeTraits( this.traits, mate.traits )
+			} );
+			this.ecosystem.spawnCell( cell );
+			this.start();
+		}.bind( this ), 5000 );
 
 		this.checkMating = false;
+	};
+
+	Cell.prototype.stop = function () {
+		this.canMove = false;
+		this.target  = null;
+		this.tween.stop();
+		this.removePath();
+	};
+
+	Cell.prototype.start = function () {
+		this.canMove = true;
+		this.target  = null;
 	};
 
 	Cell.prototype.resetColor = function () {
@@ -103,22 +113,26 @@ define( function ( require ) {
 	};
 
 	Cell.prototype.move = function () {
+		if ( !this.canMove ) {
+			return;
+		}
+
 		if ( !this.target ) {
-			this.tween();
+			this.startTween();
 		} else if ( this.position.x === this.target.x && this.position.y === this.target.y ) {
-			this.tween();
+			this.startTween();
 		}
 
 		this.updatePath();
 	};
 
-	Cell.prototype.tween = function () {
+	Cell.prototype.startTween = function () {
 		this.target = this.getRandomPoint();
 
 		var distance = this.position.distanceTo( this.target );
 		var time     = distance / this.traits.speed * this.ecosystem.viscosity;
 
-		new TWEEN.Tween( this.position ).to( this.target, time )
+		this.tween = new TWEEN.Tween( this.position ).to( this.target, time )
 			.easing( this.traits.movement )
 			.start();
 	};
@@ -148,21 +162,35 @@ define( function ( require ) {
 		this.path.geometry.verticesNeedUpdate = true;
 	};
 
+	Cell.prototype.getStartingPoint = function ( entire ) {
+		var minX = this.traits.size;
+		var maxX = window.innerWidth - this.traits.size;
+
+		var minY = this.traits.size;
+		var maxY = window.innerHeight - this.traits.size;
+
+		return this.getRandomVector3( minX, maxX, minY, maxY );
+	};
+
 	Cell.prototype.getRandomPoint = function () {
-		var minX = 0 + this.traits.size + 1;
-		var maxX = window.innerWidth - this.traits.size - 1;
+		var min      = this.traits.size * 5;
+		var max      = this.traits.sight * 10;
+		var distance = _.random( min, max );
 
-		var minY = 0 + this.traits.size + 1;
-		var maxY = window.innerHeight - this.traits.size - 1;
+		var minX = Math.max( this.traits.size, this.position.x - distance );
+		var maxX = Math.min( window.innerWidth - this.traits.size, this.position.x + distance );
 
-		var minZ = 0 + this.traits.size + 1;
-		var maxZ = window.innerHeight - this.traits.size - 1;
+		var minY = Math.max( this.traits.size, this.position.y - distance );
+		var maxY = Math.min( window.innerHeight - this.traits.size, this.position.y + distance );
 
+		return this.getRandomVector3( minX, maxX, minY, maxY );
+	};
+
+	Cell.prototype.getRandomVector3 = function ( minX, maxX, minY, maxY ) {
 		var x = Math.floor( Math.random() * ( maxX - minX ) + minX );
 		var y = Math.floor( Math.random() * ( maxY - minY ) + minY );
-		var z = 0.5 || Math.floor( Math.random() * ( maxZ - minZ ) + minZ );
 
-		return new THREE.Vector3( x, y, z );
+		return new THREE.Vector3( x, y, 0.5 );
 	};
 
 	Cell.prototype.detectIntersects = function () {

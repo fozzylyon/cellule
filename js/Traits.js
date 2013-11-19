@@ -1,13 +1,13 @@
 define( function ( require ) {
 	'use strict';
 
+	var _     = require( 'underscore' );
 	var TWEEN = require( 'TWEEN' );
 
-
-	var min = 1;
-	var max = 100;
+	var min      = 1;
+	var max      = 100;
 	var minSpeed = 10;
-	var colors = [ 0xEFEFEF, 0xFF6348, 0xF2CB05, 0x49F09F, 0x52B0ED ];
+	var colors   = [ 0xEFEFEF, 0xFF6348, 0xF2CB05, 0x49F09F, 0x52B0ED ];
 
 	var movements = [
 		TWEEN.Easing.Linear.None,
@@ -33,13 +33,13 @@ define( function ( require ) {
 	];
 
 	var getRandom = function () {
-		var color    = colors[ Math.floor( Math.random() * colors.length ) ];
-		var sight    = Math.round( Math.random() * ( max - min ) + min, 0 );
-		var strength = Math.round( Math.random() * ( max - min ) + min, 0 );
-		var size     = Math.round( Math.max( 2, Math.min( strength / 10, 5 ) ), 0 );
-		var movement = movements[ Math.floor( Math.random() * movements.length ) ];
-		var speed    = Math.floor( Math.random() * ( max - minSpeed ) + minSpeed );
-		var gender   = Math.random() < 0.5 ? 'male' : 'female';
+		var color    = _.sample( colors );
+		var sight    = _.random( min, max );
+		var strength = _.random( min, max );
+		var size     = _.random( 2, Math.min( strength / 10, 5 ) );
+		var movement = _.sample( movements );
+		var speed    = _.random( minSpeed, max );
+		var gender   = _.sample( [ 'male', 'female' ] );
 
 		return {
 			'color'    : color,
@@ -52,10 +52,24 @@ define( function ( require ) {
 		};
 	};
 
+	// Returns new `traits` that are randomly mutated slightly
+	var mergeTraits = function ( traits1, traits2  ) {
+		return {
+			'color'    : traits1.color,
+			'sight'    : _.random.apply( null, [ traits1.sight, traits2.sight ].sort() ),
+			'strength' : _.random.apply( null, [ traits1.strength, traits2.strength ].sort() ),
+			'size'     : _.sample( [ traits1.size, traits2.size ] ),
+			'movement' : _.sample( [ traits1.movement, traits2.movement ] ),
+			'speed'    : _.random.apply( null, [ traits1.speed, traits2.speed ].sort() ),
+			'gender'   : _.sample( [ traits1.gender, traits2.gender ] )
+		};
+	};
+
 	var Traits = {
-		'getRandom' : getRandom,
-		'movements' : movements,
-		'colors'    : colors
+		'getRandom'   : getRandom,
+		'movements'   : movements,
+		'colors'      : colors,
+		'mergeTraits' : mergeTraits
 	};
 
 	return Traits;
