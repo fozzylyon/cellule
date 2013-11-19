@@ -24,7 +24,7 @@ define( function ( require ) {
 
 		// cell vars
 		this.cells            = [];
-		this.initialCellCount = 500;
+		this.initialCellCount = 200;
 		this.spawning         = true;
 		this.intersections    = [];
 

@@ -9,6 +9,7 @@ require.config( {
 		'Octree'            : 'libs/threeoctree',
 		'TWEEN'             : 'libs/tween',
 		'OrbitControls'     : 'libs/OrbitControls',
+		'GeometryUtils'     : 'libs/GeometryUtils',
 		'Ecosystem'         : 'Ecosystem'
 	},
 
