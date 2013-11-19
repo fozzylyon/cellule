@@ -169,7 +169,10 @@ define( function ( require ) {
 		var minY = this.traits.size;
 		var maxY = window.innerHeight - this.traits.size;
 
-		return this.getRandomVector3( minX, maxX, minY, maxY );
+		var minZ = this.traits.size;
+		var maxZ = window.innerHeight - this.traits.size;
+
+		return this.getRandomVector3( minX, maxX, minY, maxY, minZ, maxZ );
 	};
 
 	Cell.prototype.getRandomPoint = function () {
@@ -183,14 +186,18 @@ define( function ( require ) {
 		var minY = Math.max( this.traits.size, this.position.y - distance );
 		var maxY = Math.min( window.innerHeight - this.traits.size, this.position.y + distance );
 
-		return this.getRandomVector3( minX, maxX, minY, maxY );
+		var minZ = Math.max( this.traits.size, this.position.z - distance );
+		var maxZ = Math.min( window.innerHeight - this.traits.size, this.position.z + distance );
+
+		return this.getRandomVector3( minX, maxX, minY, maxY, minZ, maxZ );
 	};
 
-	Cell.prototype.getRandomVector3 = function ( minX, maxX, minY, maxY ) {
-		var x = Math.floor( Math.random() * ( maxX - minX ) + minX );
-		var y = Math.floor( Math.random() * ( maxY - minY ) + minY );
+	Cell.prototype.getRandomVector3 = function ( minX, maxX, minY, maxY, minZ, maxZ ) {
+		var x = _.random( minX, maxX );
+		var y = _.random( minY, maxY );
+		var z = 0.5 || _.random( minZ, maxZ );
 
-		return new THREE.Vector3( x, y, 0.5 );
+		return new THREE.Vector3( x, y, z );
 	};
 
 	Cell.prototype.detectIntersects = function () {
