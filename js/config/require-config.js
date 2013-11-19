@@ -1,14 +1,15 @@
 require.config( {
 
 	'paths' : {
-		'underscore' : 'libs/underscore',
-		'jquery'     : 'libs/jquery',
-		'bean'       : 'libs/bean',
-		'toastr'     : 'libs/toastr',
-		'THREE'      : 'libs/three',
-		'Octree'     : 'libs/threeoctree',
-		'TWEEN'      : 'libs/tween',
-		'Ecosystem'  : 'Ecosystem'
+		'underscore'        : 'libs/underscore',
+		'jquery'            : 'libs/jquery',
+		'bean'              : 'libs/bean',
+		'toastr'            : 'libs/toastr',
+		'THREE'             : 'libs/three',
+		'Octree'            : 'libs/threeoctree',
+		'TWEEN'             : 'libs/tween',
+		'OrbitControls'     : 'libs/OrbitControls',
+		'Ecosystem'         : 'Ecosystem'
 	},
 
 	'shim' : {
@@ -34,6 +35,10 @@ require.config( {
 		},
 
 		'Octree' : {
+			'deps' : [ 'THREE' ]
+		},
+
+		'OrbitControls' : {
 			'deps' : [ 'THREE' ]
 		},
 

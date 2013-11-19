@@ -1,31 +1,32 @@
 define( function ( require ) {
 	'use strict';
 
-	var $         = require( 'jquery' );
-	var THREE     = require( 'THREE' );
-	var Octree    = require( 'Octree' );
-	var TWEEN     = require( 'TWEEN' );
-	var Ecosystem = require( 'Ecosystem' );
+	var $               = require( 'jquery' );
+	var THREE           = require( 'THREE' );
+	var Octree          = require( 'Octree' );
+	var OrbitControls   = require( 'OrbitControls' );
+	var TWEEN           = require( 'TWEEN' );
+	var Ecosystem       = require( 'Ecosystem' );
+	var EcosystemConfig = require( 'EcosystemConfig' );
 
-	var $ecosystem = $( '#ecosystem' );
-	var width      = window.innerWidth;
-	var height     = window.innerHeight;
+	var $container = $( 'body' );
+	var width      = EcosystemConfig.width;
+	var height     = EcosystemConfig.height;
+	var depth      = EcosystemConfig.depth;
 	var scene      = new THREE.Scene();
-	var camera     = new THREE.OrthographicCamera( 0, width, 0, height, 1, 1000 );
-	// var camera     = new THREE.PerspectiveCamera( 75, width / height, 1, 5000 * 100 );//new THREE.OrthographicCamera( 0, width, 0, height, .5, 1000 );
+	var camera     = new THREE.PerspectiveCamera( 60, width / height, 1, 10000 );
 
-	scene.position.y = height / 2;
-	scene.position.x = width / 2;
-	scene.position.z = 0.5;
+	var controls = new THREE.OrbitControls( camera );
+	controls.target = new THREE.Vector3( width / 2, height / 2,  depth / 2 );
+
 	scene.add( camera );
 
 	var renderer = new THREE.WebGLRenderer();
-	camera.position.z = 300;
 
 	// start the renderer
 	renderer.setSize( width, height );
 
-	$ecosystem.append( renderer.domElement );
+	$container.append( renderer.domElement );
 
 	// create a directional light
 	var light = new THREE.DirectionalLight( 0xFF8888 );
@@ -50,10 +51,10 @@ define( function ( require ) {
 
 
 	// stats
-	// var stats = new Stats();
-	// stats.domElement.style.position = 'absolute';
-	// stats.domElement.style.top = '0px';
-	// $ecosystem.append( stats.domElement );
+	var stats = new Stats();
+	stats.domElement.style.position = 'absolute';
+	stats.domElement.style.top = '0px';
+	$container.append( stats.domElement );
 
 
 	var requestAnimFrame = ( function () {
@@ -69,19 +70,14 @@ define( function ( require ) {
 	} );
 
 	var render = function () {
-
-		// var timer = - Date.now() / 10000;
-		// camera.position.x = Math.cos( timer ) * 1000;
-		// camera.position.y = Math.cos( timer ) * 1000;
-		// camera.position.z = Math.sin( timer ) * 1000;
-		// camera.lookAt( scene.position );
-
 		renderer.render( scene, camera );
 	};
 
 	var animate = function () {
 		// note: three.js includes requestAnimationFrame shim
 		requestAnimFrame( animate );
+
+		controls.update();
 
 		// update ecosystem
 		ecosystem.update();
@@ -98,9 +94,5 @@ define( function ( require ) {
 	};
 
 	animate();
-
-	$( '#debugger' ).on( 'click', function () {
-		debugger;
-	} );
 
 } );

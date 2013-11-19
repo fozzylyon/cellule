@@ -12,6 +12,7 @@ define( function ( require ) {
 
 		THREE.Mesh.call( this );
 
+        this.ecosystem  = options.ecosystem;
 		this.traits     = _.extend( Traits.getRandom(), options.traits );
         this.geometry   = options.geometry || this.getGeometry();
         this.material   = options.material || this.getMaterial();
@@ -20,7 +21,6 @@ define( function ( require ) {
         this.nextMating = options.nextMating || 100;
         this.canMate    = options.canMate || false;
         this.canMove    = options.canMove || true;
-        this.ecosystem  = options.ecosystem;
 
         // this.scale = new THREE.Vector3( 3, 3, 3 );
         this.rotation.y = 0.8;
@@ -29,7 +29,7 @@ define( function ( require ) {
 	Cell.prototype = Object.create( THREE.Mesh.prototype );
 
 	Cell.prototype.getMaterial = function () {
-		return new THREE.MeshBasicMaterial( { 'color' : this.traits.color } );
+		return new THREE.MeshPhongMaterial( { 'color' : this.traits.color } );
 	};
 
 	// Returns different geometry for the different genders
@@ -78,6 +78,7 @@ define( function ( require ) {
 		setTimeout( function () {
 			this.nextMating = this.ecosystem.tick + 1000;
 			var cell = new Cell( {
+				'ecosystem'  : this.ecosystem,
 				'position'   : this.position.clone(),
 				'nextMating' : this.ecosystem.tick + 5000,
 				'canMate'    : false,
@@ -164,13 +165,13 @@ define( function ( require ) {
 
 	Cell.prototype.getStartingPoint = function ( entire ) {
 		var minX = this.traits.size;
-		var maxX = window.innerWidth - this.traits.size;
+		var maxX = this.ecosystem.width - this.traits.size;
 
 		var minY = this.traits.size;
-		var maxY = window.innerHeight - this.traits.size;
+		var maxY = this.ecosystem.height - this.traits.size;
 
 		var minZ = this.traits.size;
-		var maxZ = window.innerHeight - this.traits.size;
+		var maxZ = this.ecosystem.depth - this.traits.size;
 
 		return this.getRandomVector3( minX, maxX, minY, maxY, minZ, maxZ );
 	};
@@ -181,13 +182,13 @@ define( function ( require ) {
 		var distance = _.random( min, max );
 
 		var minX = Math.max( this.traits.size, this.position.x - distance );
-		var maxX = Math.min( window.innerWidth - this.traits.size, this.position.x + distance );
+		var maxX = Math.min( this.ecosystem.width - this.traits.size, this.position.x + distance );
 
 		var minY = Math.max( this.traits.size, this.position.y - distance );
-		var maxY = Math.min( window.innerHeight - this.traits.size, this.position.y + distance );
+		var maxY = Math.min( this.ecosystem.height - this.traits.size, this.position.y + distance );
 
 		var minZ = Math.max( this.traits.size, this.position.z - distance );
-		var maxZ = Math.min( window.innerHeight - this.traits.size, this.position.z + distance );
+		var maxZ = Math.min( this.ecosystem.depth - this.traits.size, this.position.z + distance );
 
 		return this.getRandomVector3( minX, maxX, minY, maxY, minZ, maxZ );
 	};
@@ -195,7 +196,7 @@ define( function ( require ) {
 	Cell.prototype.getRandomVector3 = function ( minX, maxX, minY, maxY, minZ, maxZ ) {
 		var x = _.random( minX, maxX );
 		var y = _.random( minY, maxY );
-		var z = 0.5 || _.random( minZ, maxZ );
+		var z = _.random( minZ, maxZ );
 
 		return new THREE.Vector3( x, y, z );
 	};

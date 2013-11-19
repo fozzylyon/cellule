@@ -24,7 +24,7 @@ define( function ( require ) {
 
 		// cell vars
 		this.cells            = [];
-		this.initialCellCount = 100;
+		this.initialCellCount = 300;
 		this.spawning         = true;
 		this.intersections    = [];
 
@@ -59,8 +59,7 @@ define( function ( require ) {
 	Ecosystem.prototype.spawnCell = function ( cell ) {
 
 		// create new object
-		cell = cell || new Cell();
-		cell.ecosystem = this;
+		cell = cell || new Cell( { 'ecosystem' : this } );
 
 		// add new object to octree and scene
 		this.octree.add( cell );
@@ -72,7 +71,7 @@ define( function ( require ) {
 
 	Ecosystem.prototype.removeCell = function ( cell ) {
 		this.octree.remove( cell );
-		// this.scene.remove( cell );
+		this.scene.remove( cell );
 		this.cells = _.without( this.cells, cell );
 	};
 
