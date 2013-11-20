@@ -2,12 +2,12 @@ define( function ( require ) {
 	'use strict';
 
 	var EcosystemConfig = {
-		'viscosity'       : 1000,
-		'targetTolerance' : 5,
+		'viscosity'        : 1000,
+		'initialCellCount' : 36,
 
-		'width'     : 750,
-		'height'    : 750,
-		'depth'     : 750
+		'width'            : 1000,
+		'height'           : 1000,
+		'depth'            : 1000
 	};
 
 	return EcosystemConfig;

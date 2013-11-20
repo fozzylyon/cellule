@@ -33,7 +33,7 @@ define( function ( require ) {
 
 	var getRandom = function () {
 		var color    = _.sample( colors );
-		var sight    = _.random( min, max );
+		var sight    = _.random( 25, max );
 		var strength = _.random( min, max );
 		var size     = _.random( 2, Math.min( strength / 10, 5 ) );
 		var movement = _.sample( movements );

@@ -22,7 +22,6 @@ define( function ( require ) {
 		this.canMate    = options.canMate || false;
 		this.canMove    = options.canMove || true;
 
-		// this.scale = new THREE.Vector3( 0.5, 0.5, 0.5 );
 		this.rotation.y = 0.8;
 	};
 
@@ -124,15 +123,15 @@ define( function ( require ) {
 
 		if ( !this.target ) {
 			return this.startTween();
-		} else if ( this.position.distanceTo( this.target ) < this.ecosystem.targetTolerance ) {
+		} else if ( this.position.distanceTo( this.target ) < this.traits.size ) {
 			return this.startTween();
 		}
 
-		// this.updatePath();
+		this.updatePath();
 	};
 
-	Cell.prototype.startTween = function () {
-		this.target = this.getRandomPoint();
+	Cell.prototype.startTween = function ( destination ) {
+		this.target = destination || this.getRandomPoint();
 
 		var distance = this.position.distanceTo( this.target );
 		var time     = distance / this.traits.speed * this.ecosystem.viscosity;
@@ -145,7 +144,7 @@ define( function ( require ) {
 	Cell.prototype.addPath = function () {
 		var mat = new THREE.LineDashedMaterial( {
 			'color'       : this.traits.color,
-			'opacity'     : 0.05,
+			'opacity'     : 0.25,
 			'transparent' : true
 		} );
 
@@ -172,8 +171,8 @@ define( function ( require ) {
 	};
 
 	Cell.prototype.getRandomPoint = function () {
-		var min      = this.traits.size * 5;
-		var max      = this.traits.sight * 10;
+		var min      = this.traits.size;
+		var max      = this.traits.sight;
 		var distanceVector = new THREE.Vector3( _.random( min, max ), _.random( min, max ), _.random( min, max ) ).normalize();
 
 		var randomVector = this.ecosystem.getRandomPosition();
@@ -181,51 +180,78 @@ define( function ( require ) {
 	};
 
 	Cell.prototype.detectIntersects = function () {
-		var i;
-
-		var position   = this.position;
 		var intersects = [];
 
 		// Maximum distance from the origin before we consider collision
-		var cells = this.ecosystem.octree.search( position, 5, true );
+		var cells = this.ecosystem.octree.search( this.position, 5, true );
 		if ( cells.length === 1 ) {
 			return intersects;
 		}
 
+		this.ecosystem.rayCaster.far = this.traits.sight;
 		// For each ray
-		for ( i = 0; i < this.ecosystem.rays.length; i += 1 ) {
-
+		this.ecosystem.rays.forEach( function ( ray, index ) {
 			// We reset the raycaster to this direction
-			this.ecosystem.rayCaster.set( position, this.ecosystem.rays[ i ] );
+			this.ecosystem.rayCaster.set( this.position, ray );
 
 			// Test if we intersect with any obstacle mesh
 			intersects = this.ecosystem.rayCaster.intersectOctreeObjects( cells );
 
-			if ( intersects.length > 0 ) {
-				// TODO: Loop over intersections (only does one)
+			if ( intersects.length ) {
 				this.handleIntersect( intersects[ 0 ] );
 			}
 
-		}
+		}.bind( this ) );
+
 	};
 
 	Cell.prototype.handleIntersect = function ( target ) {
-		var intersectDistance = target.distance;
-		if ( intersectDistance <= this.traits.size ) {
-			// collision
-			if (
-				this.ecosystem.tick > this.nextMating &&
-				this.ecosystem.tick > target.object.nextMating &&
-				this.traits.color === target.object.traits.color &&
-				this.traits.gender !== target.object.traits.gender &&
-				this.traits.gender === 'female'
-			) {
-				this.reproduce( target.object );
+			var intersectDistance = target.distance;
+			var canTargetMate = this.canTargetMate( target.object );
+			var collision = intersectDistance <= this.traits.size;
+
+			target = target.object;
+			// friend
+			if ( this.traits.color === target.traits.color ) {
+				if ( canTargetMate ) {
+					// mate
+					if ( collision && this.traits.gender === 'female' ) {
+						console.log( 'collision' );
+						this.reproduce( target );
+						this.setColor( 0xFF0000 );
+					}
+					// chase potential mate
+					else {
+						console.log( 'chase' );
+						this.changeTarget( target.position );
+					}
+				}
 			}
-			this.setColor( 0xFF0000 );
-		} else {
-			// in sight
-		}
+			// enemy
+			// if ( collision ) {
+			// 	// collision
+			// 	if ( canTargetMate && this.traits.gender === 'female' ) {
+
+			// 	}
+			// }
+	};
+
+	Cell.prototype.changeTarget = function ( vector ) {
+		this.tween.to( vector );
+		this.target = vector;
+	};
+
+	Cell.prototype.canTargetMate = function ( target ) {
+		return (
+			this.traits.color === target.traits.color &&
+			this.traits.gender !== target.traits.gender &&
+			this.canMate &&
+			target.canMate
+		);
+	};
+
+	Cell.prototype.choose = function () {
+		// body...
 	};
 
 	return Cell;

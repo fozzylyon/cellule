@@ -24,24 +24,21 @@ define( function ( require ) {
 		// `ecosystem` variables
 		_.extend( this, EcosystemConfig );
 
-		this.geometry = new THREE.SphereGeometry( this.width, 24, 24 );
-		var mat = new THREE.MeshBasicMaterial( { 'transparent' : true, 'opacity' : 0.01 } );
-		this.scene.add( new THREE.Mesh( this.geometry, mat ) );
+		this.geometry = new THREE.SphereGeometry( this.width, 64, 24 );
+		// var mat = new THREE.MeshBasicMaterial( { 'transparent' : true, 'opacity' : 0.01 } );
+		// this.boundingMesh = new THREE.Mesh( this.geometry, mat );
+		// this.boundingMesh.scale.x = 2;
+		// this.boundingMesh.scale.z = 2;
+		// this.scene.add( this.boundingMesh );
+
 
 		// cell vars
 		this.cells            = [];
-		this.initialCellCount = 200;
 		this.spawning         = true;
-		this.intersections    = [];
-
-		// search vars
-		this.radius        = 10;
-		this.radiusMax     = this.radius * 1.5;
-		this.radiusMaxHalf = this.radiusMax * 0.5;
 
 		// ray collision
 		this.rayCaster = new THREE.Raycaster();
-		this.rayCaster.far = this.radiusMax;
+		this.rayCaster.far = 100;
 		this.rays = [
 			new THREE.Vector3( -1, 0, 0),
 			new THREE.Vector3( -1, 1, 0),
@@ -55,10 +52,7 @@ define( function ( require ) {
 
 		// create octree
 		this.octree = new THREE.Octree( {
-			'radius'           : this.radius,
-			'overlapPct'       : 0.15,
-			'scene'            : this.scene,
-			'objectsThreshold' : 8
+			'scene' : this.scene
 		} );
 	};
 
