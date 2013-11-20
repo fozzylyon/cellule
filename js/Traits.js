@@ -28,8 +28,7 @@ define( function ( require ) {
 		TWEEN.Easing.Exponential.InOut,
 		TWEEN.Easing.Circular.In,
 		TWEEN.Easing.Circular.Out,
-		TWEEN.Easing.Circular.InOut,
-		TWEEN.Easing.Back.Out
+		TWEEN.Easing.Circular.InOut
 	];
 
 	var getRandom = function () {

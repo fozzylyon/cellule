@@ -24,6 +24,8 @@ define( function ( require ) {
 		_.extend( this, EcosystemConfig );
 
 		this.geometry = new THREE.SphereGeometry( this.width, 24, 24 );
+		var mat = new THREE.MeshBasicMaterial( { 'transparent' : true, 'opacity' : 0.01 } );
+		this.scene.add( new THREE.Mesh( this.geometry, mat ) );
 
 		// cell vars
 		this.cells            = [];

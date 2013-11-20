@@ -168,41 +168,16 @@ define( function ( require ) {
 	};
 
 	Cell.prototype.getStartingPoint = function ( entire ) {
-		var minX = this.traits.size;
-		var maxX = this.ecosystem.width - this.traits.size;
-
-		var minY = this.traits.size;
-		var maxY = this.ecosystem.height - this.traits.size;
-
-		var minZ = this.traits.size;
-		var maxZ = this.ecosystem.depth - this.traits.size;
-
-		return this.getRandomVector3( minX, maxX, minY, maxY, minZ, maxZ );
+		return this.ecosystem.getRandomPosition();
 	};
 
 	Cell.prototype.getRandomPoint = function () {
 		var min      = this.traits.size * 5;
 		var max      = this.traits.sight * 10;
-		var distance = _.random( min, max );
+		var distanceVector = new THREE.Vector3( _.random( min, max ), _.random( min, max ), _.random( min, max ) ).normalize();
 
-		var minX = Math.max( this.traits.size, this.position.x - distance );
-		var maxX = Math.min( this.ecosystem.width - this.traits.size, this.position.x + distance );
-
-		var minY = Math.max( this.traits.size, this.position.y - distance );
-		var maxY = Math.min( this.ecosystem.height - this.traits.size, this.position.y + distance );
-
-		var minZ = Math.max( this.traits.size, this.position.z - distance );
-		var maxZ = Math.min( this.ecosystem.depth - this.traits.size, this.position.z + distance );
-
-		return this.getRandomVector3( minX, maxX, minY, maxY, minZ, maxZ );
-	};
-
-	Cell.prototype.getRandomVector3 = function ( minX, maxX, minY, maxY, minZ, maxZ ) {
-		var x = _.random( minX, maxX );
-		var y = _.random( minY, maxY );
-		var z = _.random( minZ, maxZ );
-
-		return this.ecosystem.getRandomPosition(); //new THREE.Vector3( x, y, z );
+		var randomVector = this.ecosystem.getRandomPosition();
+		return new THREE.Vector3().subVectors( distanceVector, randomVector ).negate();
 	};
 
 	Cell.prototype.detectIntersects = function () {
