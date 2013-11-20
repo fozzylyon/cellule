@@ -18,6 +18,7 @@ define( function ( require ) {
 	var $container = $( 'body' );
 	var scene      = new THREE.Scene();
 	var camera     = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+	camera.position = new THREE.Vector3( 1500, 500, 1500 );
 
 	// fog
 	// scene.fog = new THREE.Fog( backgroundColor, 100, 2000 );
@@ -32,7 +33,7 @@ define( function ( require ) {
 	// controls
 	var controls = new THREE.OrbitControls( camera );
 
-	controls.target = new THREE.Vector3( width / 2, height / 2, depth / 2 );
+	controls.target = new THREE.Vector3( 0, 100, 0 );
 	scene.add( camera );
 
 	// renderer

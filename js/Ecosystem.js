@@ -2,13 +2,14 @@ define( function ( require ) {
 	'use strict';
 
 	var _             = require( 'underscore' );
+	var $             = require( 'jquery' );
 	var Cell          = require( 'Cell' );
 	var THREE         = require( 'THREE' );
 	var Octree        = require( 'Octree' );
 	var GeometryUtils = require( 'GeometryUtils' );
 
 	var EcosystemConfig = require( 'EcosystemConfig' );
-
+	var $population     = $( '#population' );
 
 	var Ecosystem = function ( options ) {
 		this.scene  = options.scene;
@@ -88,8 +89,9 @@ define( function ( require ) {
 
 		this.tick++;
 
-		if ( this.tick % 250 === 0 ) {
+		if ( this.tick % 100 === 0 ) {
 			console.log( this.tick + ' ticks', '(', this.cells.length, ')' );
+			$population.html( this.cells.length );
 		}
 
 		// if at max, stop this.spawning
