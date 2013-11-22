@@ -62,7 +62,7 @@ define( function ( require ) {
 		};
 	} )();
 
-	var ecosystem = new Ecosystem( {
+	var ecosystem = window.ecosystem = new Ecosystem( {
 		'scene'    : scene,
 		'camera'   : camera
 	} );

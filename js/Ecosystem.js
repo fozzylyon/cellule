@@ -24,7 +24,7 @@ define( function ( require ) {
 		// `ecosystem` variables
 		_.extend( this, EcosystemConfig );
 
-		this.geometry = new THREE.SphereGeometry( this.width, 64, 24 );
+		this.geometry = new THREE.CylinderGeometry( this.width, this.width, 64, 24 );
 		// var mat = new THREE.MeshBasicMaterial( { 'transparent' : true, 'opacity' : 0.01 } );
 		// this.boundingMesh = new THREE.Mesh( this.geometry, mat );
 		// this.boundingMesh.scale.x = 2;
@@ -52,7 +52,8 @@ define( function ( require ) {
 
 		// create octree
 		this.octree = new THREE.Octree( {
-			'scene' : this.scene
+			'scene'      : this.scene,
+			'overlapPct' : 0.25
 		} );
 	};
 
@@ -75,7 +76,7 @@ define( function ( require ) {
 
 	Ecosystem.prototype.removeCell = function ( cell ) {
 		this.octree.remove( cell );
-		this.scene.remove( cell );
+		// this.scene.remove( cell );
 		this.cells = _.without( this.cells, cell );
 	};
 

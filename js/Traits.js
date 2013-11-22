@@ -32,22 +32,24 @@ define( function ( require ) {
 	];
 
 	var getRandom = function () {
-		var color    = _.sample( colors );
-		var sight    = _.random( 25, max );
-		var strength = _.random( min, max );
-		var size     = _.random( 2, Math.min( strength / 10, 5 ) );
-		var movement = _.sample( movements );
-		var speed    = _.random( minSpeed, max );
-		var gender   = _.sample( [ 'male', 'female' ] );
+		var color         = _.sample( colors );
+		var sight         = _.random( 25, max );
+		var strength      = _.random( min, max );
+		var size          = _.random( 2, Math.min( strength / 10, 5 ) );
+		var movement      = _.sample( movements );
+		var speed         = _.random( minSpeed, max * 2 / size ) ;
+		var gender        = _.sample( [ 'male', 'female' ] );
+		var metabolicRate = _.random( 0, size / 2, true );
 
 		return {
-			'color'    : color,
-			'sight'    : sight,
-			'strength' : strength,
-			'size'     : size,
-			'movement' : movement,
-			'speed'    : speed,
-			'gender'   : gender
+			'color'         : color,
+			'sight'         : sight,
+			'strength'      : strength,
+			'size'          : size,
+			'movement'      : movement,
+			'speed'         : speed,
+			'gender'        : gender,
+			'metabolicRate' : metabolicRate
 		};
 	};
 

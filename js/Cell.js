@@ -42,13 +42,30 @@ define( function ( require ) {
 	};
 
 	Cell.prototype.update = function () {
+		if ( !this.canMove ) {
+			return;
+		}
 		this.detectIntersects();
-		this.resetColor();
 		this.move();
 
 		if ( this.ecosystem.tick > this.nextMating ) {
 			this.canMate = true;
 		}
+		this.metabolize();
+	};
+
+	Cell.prototype.metabolize = function () {
+		this.energy -= ( this.traits.metabolicRate / this.ecosystem.viscosity / this.traits.size );
+		if ( this.energy <= 0 ) {
+			this.expire();
+		}
+	};
+
+	Cell.prototype.expire = function () {
+		this.setColor( 0x333333 );
+		this.scale = new THREE.Vector3( 10, 10, 10 );
+		this.stop();
+		this.ecosystem.removeCell( this );
 	};
 
 	Cell.prototype.reproduce = function ( mate ) {
@@ -104,12 +121,6 @@ define( function ( require ) {
 	Cell.prototype.start = function () {
 		this.canMove = true;
 		this.target  = null;
-	};
-
-	Cell.prototype.resetColor = function () {
-		setTimeout( function () {
-			this.setColor( this.traits.color );
-		}.bind( this ), 500 );
 	};
 
 	Cell.prototype.setColor = function ( color ) {
@@ -218,7 +229,6 @@ define( function ( require ) {
 					if ( collision && this.traits.gender === 'female' ) {
 						console.log( 'collision' );
 						this.reproduce( target );
-						this.setColor( 0xFF0000 );
 					}
 					// chase potential mate
 					else {
@@ -239,6 +249,7 @@ define( function ( require ) {
 	Cell.prototype.changeTarget = function ( vector ) {
 		this.tween.to( vector );
 		this.target = vector;
+		this.scale.y = 5;
 	};
 
 	Cell.prototype.canTargetMate = function ( target ) {
