@@ -44,6 +44,18 @@ define( function ( require ) {
 
 	scene.add( new THREE.GridHelper( 1000, 50 ) );
 
+
+
+	var windowResize = function () {
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+
+		renderer.setSize( window.innerWidth, window.innerHeight );
+
+		controls.handleResize();
+	};
+	window.addEventListener( 'resize', windowResize, false );
+
 	var requestAnimFrame = ( function () {
 		return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || function ( callback ) {
 			window.setTimeout(callback, 1000 / 60);
