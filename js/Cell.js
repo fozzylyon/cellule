@@ -23,6 +23,7 @@ define( function ( require ) {
 		this.canMove    = options.canMove || true;
 
 		this.rotation.y = 0.8;
+		// this.scale = new THREE.Vector3( this.ecosystem.cellScale, this.ecosystem.cellScale, this.ecosystem.cellScale );
 	};
 
 	Cell.prototype = Object.create( THREE.Mesh.prototype );
@@ -48,6 +49,11 @@ define( function ( require ) {
 		this.detectIntersects();
 		this.move();
 
+		if ( !this.sight ) {
+			this.sight = new THREE.Mesh( new THREE.SphereGeometry( 100, 12, 12 ), new THREE.MeshBasicMaterial( { 'color' : this.traits.color, 'transparent' : true, 'opacity' : 0.05 } ) );
+			this.parent.add( this.sight );
+		}
+
 		if ( this.ecosystem.tick > this.nextMating ) {
 			this.canMate = true;
 		}
@@ -55,7 +61,7 @@ define( function ( require ) {
 	};
 
 	Cell.prototype.metabolize = function () {
-		this.energy -= ( this.traits.metabolicRate / this.ecosystem.viscosity / this.traits.size );
+		this.energy -= ( this.traits.metabolicRate / this.ecosystem.viscosity );
 		if ( this.energy <= 0 ) {
 			this.expire();
 		}
@@ -149,6 +155,9 @@ define( function ( require ) {
 
 		this.tween = new TWEEN.Tween( this.position ).to( this.target, time )
 			.easing( this.traits.movement )
+			.onUpdate( function () {
+				this.sight.position = this.position;
+			}.bind( this ) )
 			.start();
 	};
 
@@ -194,12 +203,11 @@ define( function ( require ) {
 		var intersects = [];
 
 		// Maximum distance from the origin before we consider collision
-		var cells = this.ecosystem.octree.search( this.position, 5, true );
+		var cells = this.ecosystem.octree.search( this.position, 200, true, this.target, 0.25 );
 		if ( cells.length === 1 ) {
 			return intersects;
 		}
 
-		this.ecosystem.rayCaster.far = this.traits.sight;
 		// For each ray
 		this.ecosystem.rays.forEach( function ( ray, index ) {
 			// We reset the raycaster to this direction
@@ -207,8 +215,8 @@ define( function ( require ) {
 
 			// Test if we intersect with any obstacle mesh
 			intersects = this.ecosystem.rayCaster.intersectOctreeObjects( cells );
-
 			if ( intersects.length ) {
+			console.log( "intersects:", intersects );
 				this.handleIntersect( intersects[ 0 ] );
 			}
 
@@ -223,9 +231,12 @@ define( function ( require ) {
 
 			target = target.object;
 			// friend
+			console.log( "intersectDistance:", intersectDistance );
 			if ( this.traits.color === target.traits.color ) {
+				console.log( '    :friendly' );
 				if ( canTargetMate ) {
 					// mate
+					console.log( '    :canTargetmate' );
 					if ( collision && this.traits.gender === 'female' ) {
 						console.log( 'collision' );
 						this.reproduce( target );

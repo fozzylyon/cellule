@@ -53,7 +53,8 @@ define( function ( require ) {
 		// create octree
 		this.octree = new THREE.Octree( {
 			'scene'      : this.scene,
-			'overlapPct' : 0.25
+			'overlapPct' : 0.25,
+			'objectsThreshold' : 100
 		} );
 	};
 

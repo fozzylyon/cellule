@@ -17,7 +17,7 @@ define( function ( require ) {
 
 	var $container = $( 'body' );
 	var scene      = new THREE.Scene();
-	var camera     = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+	var camera     = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 100000 );
 	camera.position = new THREE.Vector3( 1500, 500, 1500 );
 
 	// fog
@@ -52,7 +52,6 @@ define( function ( require ) {
 
 		renderer.setSize( window.innerWidth, window.innerHeight );
 
-		controls.handleResize();
 	};
 	window.addEventListener( 'resize', windowResize, false );
 
@@ -81,5 +80,11 @@ define( function ( require ) {
 	};
 
 	animate();
+
+
+	var $debugOutput = $( '.debugOutput' );
+	$( window ).bind( 'debug:output', function ( event ) {
+		$debugOutput.html( event.stdout )
+	} );
 
 } );
