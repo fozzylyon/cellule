@@ -23,7 +23,7 @@ define( function ( require ) {
 		this.canMove    = options.canMove || true;
 
 		this.rotation.y = 0.8;
-		// this.scale = new THREE.Vector3( this.ecosystem.cellScale, this.ecosystem.cellScale, this.ecosystem.cellScale );
+		this.scale = new THREE.Vector3( this.ecosystem.cellScale, this.ecosystem.cellScale, this.ecosystem.cellScale );
 	};
 
 	Cell.prototype = Object.create( THREE.Mesh.prototype );
@@ -46,7 +46,9 @@ define( function ( require ) {
 		if ( !this.canMove ) {
 			return;
 		}
-		this.detectIntersects();
+		if ( !this.targetCell ) {
+			this.detectIntersects();
+		}
 		this.move();
 
 		if ( !this.sight ) {
@@ -99,17 +101,17 @@ define( function ( require ) {
 		setTimeout( function () {
 			this.nextMating = this.ecosystem.tick + 1000;
 
-			var cell = new Cell( {
-				'ecosystem'  : this.ecosystem,
-				'position'   : this.position.clone(),
-				'nextMating' : this.ecosystem.tick + 5000,
-				'canMate'    : false,
-				'traits'     : Traits.mergeTraits( this.traits, mate.traits )
-			} );
+			// var cell = new Cell( {
+			// 	'ecosystem'  : this.ecosystem,
+			// 	'position'   : this.position.clone(),
+			// 	'nextMating' : this.ecosystem.tick + 5000,
+			// 	'canMate'    : false,
+			// 	'traits'     : Traits.mergeTraits( this.traits, mate.traits )
+			// } );
 
-			console.log( 'spawning a new cell', cell.traits );
+			// console.log( 'spawning a new cell', cell.traits );
 
-			this.ecosystem.spawnCell( cell );
+			// this.ecosystem.spawnCell( cell );
 
 			this.start();
 		}.bind( this ), 5000 );
@@ -141,6 +143,7 @@ define( function ( require ) {
 		if ( !this.target ) {
 			return this.startTween();
 		} else if ( this.position.distanceTo( this.target ) < this.traits.size ) {
+			this.targetCell = undefined;
 			return this.startTween();
 		}
 
@@ -204,6 +207,7 @@ define( function ( require ) {
 
 		// Maximum distance from the origin before we consider collision
 		var cells = this.ecosystem.octree.search( this.position, 200, true, this.target, 0.25 );
+		console.log( "cells.length:", cells.length );
 		if ( cells.length === 1 ) {
 			return intersects;
 		}
@@ -211,7 +215,7 @@ define( function ( require ) {
 		// For each ray
 		this.ecosystem.rays.forEach( function ( ray, index ) {
 			// We reset the raycaster to this direction
-			this.ecosystem.rayCaster.set( this.position, ray );
+			this.ecosystem.rayCaster.set( this.position, ray, 0, 1000 );
 
 			// Test if we intersect with any obstacle mesh
 			intersects = this.ecosystem.rayCaster.intersectOctreeObjects( cells );
@@ -229,12 +233,15 @@ define( function ( require ) {
 			var canTargetMate = this.canTargetMate( target.object );
 			var collision = intersectDistance <= this.traits.size;
 
+			// target is now the target cell
 			target = target.object;
+
 			// friend
 			console.log( "intersectDistance:", intersectDistance );
 			if ( this.traits.color === target.traits.color ) {
 				console.log( '    :friendly' );
 				if ( canTargetMate ) {
+					this.targetCell = target;
 					// mate
 					console.log( '    :canTargetmate' );
 					if ( collision && this.traits.gender === 'female' ) {
@@ -258,9 +265,8 @@ define( function ( require ) {
 	};
 
 	Cell.prototype.changeTarget = function ( vector ) {
-		this.tween.to( vector );
-		this.target = vector;
-		this.scale.y = 5;
+		this.tween.stop();
+		this.startTween( this.targetCell.position );
 	};
 
 	Cell.prototype.canTargetMate = function ( target ) {

@@ -38,7 +38,6 @@ define( function ( require ) {
 
 		// ray collision
 		this.rayCaster = new THREE.Raycaster();
-		this.rayCaster.far = 100;
 		this.rays = [
 			new THREE.Vector3( -1, 0, 0),
 			new THREE.Vector3( -1, 1, 0),
