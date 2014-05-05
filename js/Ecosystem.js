@@ -24,7 +24,7 @@ define( function ( require ) {
 		// `ecosystem` variables
 		_.extend( this, EcosystemConfig );
 
-		this.geometry = new THREE.CylinderGeometry( this.width, this.width, 64, 24 );
+		this.geometry = new THREE.CylinderGeometry( this.height, this.width, this.depth, 24 );
 		// var mat = new THREE.MeshBasicMaterial( { 'transparent' : true, 'opacity' : 0.01 } );
 		// this.boundingMesh = new THREE.Mesh( this.geometry, mat );
 		// this.boundingMesh.scale.x = 2;
@@ -46,7 +46,15 @@ define( function ( require ) {
 			new THREE.Vector3( 1, 0, 0),
 			new THREE.Vector3( 1, -1, 0),
 			new THREE.Vector3( 0, -1, 0),
-			new THREE.Vector3( -1, -1, 0 )
+			new THREE.Vector3( -1, -1, 0 ),
+
+			new THREE.Vector3( 0, 1, -1),
+			new THREE.Vector3( 0, 0, -1),
+			new THREE.Vector3( 0, -1, -1),
+			new THREE.Vector3( 0, -1, 1),
+			new THREE.Vector3( 0, 0, 1),
+			new THREE.Vector3( 0, 1, 1),
+
 		];
 
 		// create octree

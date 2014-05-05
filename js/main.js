@@ -70,21 +70,29 @@ define( function ( require ) {
 		renderer.render( scene, camera );
 	};
 
+	var stats = new Stats();
+	stats.setMode(1); // 0: fps, 1: ms
+
+	// Align top-left
+	stats.domElement.style.position = 'absolute';
+	stats.domElement.style.left = '0px';
+	stats.domElement.style.top = '0px';
+
+	document.body.appendChild( stats.domElement );
+
 	var animate = function () {
+		stats.begin();
+
 		requestAnimFrame( animate );
 		controls.update();
 		ecosystem.update();
 		TWEEN.update();
 		render();
 		ecosystem.updateOctree();
+
+		stats.end();
 	};
 
 	animate();
-
-
-	var $debugOutput = $( '.debugOutput' );
-	$( window ).bind( 'debug:output', function ( event ) {
-		$debugOutput.html( event.stdout )
-	} );
 
 } );

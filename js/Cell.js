@@ -52,8 +52,8 @@ define( function ( require ) {
 		this.move();
 
 		if ( !this.sight ) {
-			this.sight = new THREE.Mesh( new THREE.SphereGeometry( 100, 12, 12 ), new THREE.MeshBasicMaterial( { 'color' : this.traits.color, 'transparent' : true, 'opacity' : 0.05 } ) );
-			this.parent.add( this.sight );
+			// this.sight = new THREE.Mesh( new THREE.SphereGeometry( 100, 12, 12 ), new THREE.MeshBasicMaterial( { 'color' : this.traits.color, 'transparent' : true, 'opacity' : 0.05 } ) );
+			// this.parent.add( this.sight );
 		}
 
 		if ( this.ecosystem.tick > this.nextMating ) {
@@ -101,17 +101,17 @@ define( function ( require ) {
 		setTimeout( function () {
 			this.nextMating = this.ecosystem.tick + 1000;
 
-			// var cell = new Cell( {
-			// 	'ecosystem'  : this.ecosystem,
-			// 	'position'   : this.position.clone(),
-			// 	'nextMating' : this.ecosystem.tick + 5000,
-			// 	'canMate'    : false,
-			// 	'traits'     : Traits.mergeTraits( this.traits, mate.traits )
-			// } );
+			var cell = new Cell( {
+				'ecosystem'  : this.ecosystem,
+				'position'   : this.position.clone(),
+				'nextMating' : this.ecosystem.tick + 5000,
+				'canMate'    : false,
+				'traits'     : Traits.mergeTraits( this.traits, mate.traits )
+			} );
 
-			// console.log( 'spawning a new cell', cell.traits );
+			console.log( 'spawning a new cell', cell.traits );
 
-			// this.ecosystem.spawnCell( cell );
+			this.ecosystem.spawnCell( cell );
 
 			this.start();
 		}.bind( this ), 5000 );
@@ -159,12 +159,13 @@ define( function ( require ) {
 		this.tween = new TWEEN.Tween( this.position ).to( this.target, time )
 			.easing( this.traits.movement )
 			.onUpdate( function () {
-				this.sight.position = this.position;
+				// this.sight.position = this.position;
 			}.bind( this ) )
 			.start();
 	};
 
 	Cell.prototype.addPath = function () {
+		return;
 		var mat = new THREE.LineDashedMaterial( {
 			'color'       : this.traits.color,
 			'opacity'     : 0.25,
@@ -176,11 +177,13 @@ define( function ( require ) {
 	};
 
 	Cell.prototype.removePath = function () {
+		return;
 		this.parent.remove( this.path );
 		this.path = null;
 	};
 
 	Cell.prototype.updatePath = function () {
+		return;
 		if ( !this.path ) {
 			this.addPath();
 		}
@@ -198,6 +201,7 @@ define( function ( require ) {
 		var max      = this.traits.sight;
 		var distanceVector = new THREE.Vector3( _.random( min, max ), _.random( min, max ), _.random( min, max ) ).normalize();
 
+		// console.log(distanceVector.x,distanceVector.y,distanceVector.z);
 		var randomVector = this.ecosystem.getRandomPosition();
 		return new THREE.Vector3().subVectors( distanceVector, randomVector ).negate();
 	};
@@ -207,7 +211,7 @@ define( function ( require ) {
 
 		// Maximum distance from the origin before we consider collision
 		var cells = this.ecosystem.octree.search( this.position, 200, true, this.target, 0.25 );
-		console.log( "cells.length:", cells.length );
+		// console.log( "cells.length:", cells.length );
 		if ( cells.length === 1 ) {
 			return intersects;
 		}
@@ -220,7 +224,7 @@ define( function ( require ) {
 			// Test if we intersect with any obstacle mesh
 			intersects = this.ecosystem.rayCaster.intersectOctreeObjects( cells );
 			if ( intersects.length ) {
-			console.log( "intersects:", intersects );
+				// console.log( "intersects:", intersects );
 				this.handleIntersect( intersects[ 0 ] );
 			}
 
@@ -237,20 +241,20 @@ define( function ( require ) {
 			target = target.object;
 
 			// friend
-			console.log( "intersectDistance:", intersectDistance );
+			// console.log( "intersectDistance:", intersectDistance );
 			if ( this.traits.color === target.traits.color ) {
-				console.log( '    :friendly' );
+				// console.log( '    :friendly' );
 				if ( canTargetMate ) {
 					this.targetCell = target;
 					// mate
-					console.log( '    :canTargetmate' );
+					// console.log( '    :canTargetmate' );
 					if ( collision && this.traits.gender === 'female' ) {
-						console.log( 'collision' );
+						// console.log( 'collision' );
 						this.reproduce( target );
 					}
 					// chase potential mate
 					else {
-						console.log( 'chase' );
+						// console.log( 'chase' );
 						this.changeTarget( target.position );
 					}
 				}

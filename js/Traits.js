@@ -7,7 +7,7 @@ define( function ( require ) {
 	var min      = 1;
 	var max      = 100;
 	var minSpeed = 10;
-	var colors   = [ 0xFF6348 ];
+	var colors   = [ 0xFF6348, 0x52b22f, 0x459dc9, 0x7d4ccd, 0xded74f ];
 
 	var movements = [
 		TWEEN.Easing.Linear.None

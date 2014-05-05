@@ -3,12 +3,12 @@ define( function ( require ) {
 
 	var EcosystemConfig = {
 		'viscosity'        : 1000,
-		'initialCellCount' : 2,
-		'cellScale'        : 5,
+		'initialCellCount' : 20,
+		'cellScale'        : 4,
 
-		'width'            : 100,
-		'height'           : 100,
-		'depth'            : 100
+		'width'            : 1500,
+		'height'           : 1500,
+		'depth'            : 1500
 	};
 
 	return EcosystemConfig;

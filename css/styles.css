@@ -1,6 +1,4 @@
-// @import "bootstrap.less";
-
-body {
+html, body {
 	margin: 0px;
 	padding: 0px;
 	color: #EFEFEF;
@@ -14,5 +12,3 @@ body {
 	padding: 5px;
 	z-index: 10000;
 }
-
-// @import "bootstrap-responsive.less";
