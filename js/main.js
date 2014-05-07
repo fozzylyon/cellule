@@ -1,74 +1,14 @@
 define( function ( require ) {
 	'use strict';
 
-	var $               = require( 'jquery' );
-	var THREE           = require( 'THREE' );
-	var Octree          = require( 'Octree' );
-	var OrbitControls   = require( 'OrbitControls' );
-	var TWEEN           = require( 'TWEEN' );
-	var Ecosystem       = require( 'Ecosystem' );
-	var EcosystemConfig = require( 'EcosystemConfig' );
+	var _      = require( 'underscore' );
+	var $      = require( 'jquery' );
+	var Pixi   = require( 'Pixi' );
+	var Matter = require( 'matter' );
 
-	var width      = EcosystemConfig.width;
-	var height     = EcosystemConfig.height;
-	var depth      = EcosystemConfig.depth;
+	var Ecosystem = require( 'Ecosystem' );
 
-	var backgroundColor = 0x333333;
-
-	var $container = $( 'body' );
-	var scene      = new THREE.Scene();
-	var camera     = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 100000 );
-	camera.position = new THREE.Vector3( 1500, 500, 1500 );
-
-	// fog
-	// scene.fog = new THREE.Fog( backgroundColor, 100, 2000 );
-
-	// light
-	var light = new THREE.DirectionalLight( 0xFFFFFF );
-	light.position.x = width / 2;
-	light.position.y = depth / 2;
-	light.position.z = height * 2;
-	scene.add( light );
-
-	// controls
-	var controls = new THREE.OrbitControls( camera );
-
-	controls.target = new THREE.Vector3( 0, 100, 0 );
-	scene.add( camera );
-
-	// renderer
-	var renderer = new THREE.WebGLRenderer();
-	renderer.setClearColor( backgroundColor, 1 );
-	renderer.setSize( window.innerWidth, window.innerHeight );
-	$container.append( renderer.domElement );
-
-	scene.add( new THREE.GridHelper( 1000, 50 ) );
-
-
-
-	var windowResize = function () {
-		camera.aspect = window.innerWidth / window.innerHeight;
-		camera.updateProjectionMatrix();
-
-		renderer.setSize( window.innerWidth, window.innerHeight );
-
-	};
-	window.addEventListener( 'resize', windowResize, false );
-
-	var requestAnimFrame = ( function () {
-		return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || function ( callback ) {
-			window.setTimeout(callback, 1000 / 60);
-		};
-	} )();
-
-	var ecosystem = window.ecosystem = new Ecosystem( {
-		'scene'    : scene,
-		'camera'   : camera
-	} );
-
-	var render = function () {
-		renderer.render( scene, camera );
-	};
+	var $container = $.find( 'container' );
 
 	var stats = new Stats();
 	stats.setMode(1); // 0: fps, 1: ms
@@ -80,19 +20,105 @@ define( function ( require ) {
 
 	document.body.appendChild( stats.domElement );
 
-	var animate = function () {
-		stats.begin();
+	$(window).resize(resize)
+	window.onorientationchange = resize;
 
-		requestAnimFrame( animate );
-		controls.update();
-		ecosystem.update();
-		TWEEN.update();
-		render();
-		ecosystem.updateOctree();
-
-		stats.end();
+	var options = {
+	    'positionIterations' : 6,
+	    'velocityIterations' : 4,
+	    'enableSleeping'     : false
 	};
 
-	animate();
+	var engine = Matter.Engine.create( $container, options );
+
+	var _mouseConstraint = MouseConstraint.create(_engine);
+  Matter.World.add(_engine.world, _mouseConstraint);
+	Engine.run(_engine);
+
+	var w = 1024;
+	var h = 768;
+	var renderer = Pixi.autoDetectRenderer(w, h);
+	var stage = new Pixi.Stage();
+	document.body.appendChild( renderer.view );
+
+	var sx        = 1.0 + (Math.random() / 20);
+	var sy        = 1.0 + (Math.random() / 20);
+	var slideX    = w / 2;
+	var slideY    = h / 2;
+
+	var ecosystem = new Ecosystem( {
+		'renderer' : renderer,
+		'stage'    : stage
+	} );
+
+
+	function resize()
+	{
+		w = $(window).width() - 16;
+		h = $(window).height() - 16;
+
+		slideX = w / 2;
+		slideY = h / 2;
+
+		renderer.resize(w, h);
+	}
+
+	function animate()
+	{
+		stats.begin();
+
+		ecosystem.update();
+
+		renderer.render( stage );
+
+		requestAnimFrame( animate );
+
+		stats.end();
+	}
+
+animate();
+
+	// var requestAnimFrame = ( function () {
+	// 	return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || function ( callback ) {
+	// 		window.setTimeout(callback, 1000 / 60);
+	// 	};
+	// } )();
+
+	// var stats = new Stats();
+	// stats.setMode(1); // 0: fps, 1: ms
+	//
+	// // Align top-left
+	// stats.domElement.style.position = 'absolute';
+	// stats.domElement.style.left = '0px';
+	// stats.domElement.style.top = '0px';
+	//
+	// document.body.appendChild( stats.domElement );
+	//
+	// var animate = function () {
+	// 	stats.begin();
+	//
+	// 	thing.clear();
+	//
+	// 	count += 0.1;
+	//
+	// 	thing.clear();
+	// 	thing.lineStyle(30, 0xff0000, 1);
+	// 	thing.beginFill(0xffFF00, 0.5);
+	//
+	// 	thing.moveTo(-120 + Math.sin(count) * 20, -100 + Math.cos(count)* 20);
+	// 	thing.lineTo(120 + Math.cos(count) * 20, -100 + Math.sin(count)* 20);
+	// 	thing.lineTo(120 + Math.sin(count) * 20, 100 + Math.cos(count)* 20);
+	// 	thing.lineTo(-120 + Math.cos(count)* 20, 100 + Math.sin(count)* 20);
+	// 	thing.lineTo(-120 + Math.sin(count) * 20, -100 + Math.cos(count)* 20);
+	//
+	// 	thing.rotation = count * 0.1;
+	//     renderer.render(stage);
+	//
+	// 	requestAnimFrame( animate );
+	//
+	// 	stats.end();
+	// };
+	//
+	// requestAnimFrame( animate );
 
 } );

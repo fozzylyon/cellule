@@ -5,11 +5,9 @@ require.config( {
 		'jquery'            : 'libs/jquery',
 		'bean'              : 'libs/bean',
 		'toastr'            : 'libs/toastr',
-		'THREE'             : 'libs/three',
-		'Octree'            : 'libs/threeoctree',
+		'Pixi'              : 'libs/pixi.dev',
+		'Matter'            : 'libs/matter-0.8.0',
 		'TWEEN'             : 'libs/tween',
-		'OrbitControls'     : 'libs/OrbitControls',
-		'GeometryUtils'     : 'libs/GeometryUtils',
 		'Ecosystem'         : 'Ecosystem'
 	},
 
@@ -29,22 +27,6 @@ require.config( {
 
 		'boostrap' : {
 			'deps' : [ 'jquery' ]
-		},
-
-		'THREE' : {
-			'exports' : 'THREE'
-		},
-
-		'Octree' : {
-			'deps' : [ 'THREE' ]
-		},
-
-		'OrbitControls' : {
-			'deps' : [ 'THREE' ]
-		},
-
-		'GeometryUtils' : {
-			'deps' : [ 'THREE' ]
 		},
 
 		'TWEEN' : {

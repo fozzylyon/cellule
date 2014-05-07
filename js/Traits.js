@@ -9,6 +9,15 @@ define( function ( require ) {
 	var minSpeed = 10;
 	var colors   = [ 0xFF6348, 0x52b22f, 0x459dc9, 0x7d4ccd, 0xded74f ];
 
+	var hexToMatrix = function ( rgb, alpha ) {
+			var matrix = [];
+			matrix = matrix.concat([((rgb & 0x00FF0000) >>> 16)/255, 0, 0, 0, 0]); // red
+			matrix = matrix.concat([0, ((rgb & 0x0000FF00) >>> 8)/255, 0, 0, 0]); // green
+			matrix = matrix.concat([0, 0, (rgb & 0x000000FF)/255, 0, 0]); // blue
+			matrix = matrix.concat([0, 0, 0, alpha/100, 0]); // alpha
+			return matrix;
+		}
+
 	var movements = [
 		TWEEN.Easing.Linear.None
 	];

@@ -2,128 +2,144 @@ define( function ( require ) {
 	'use strict';
 
 	var _     = require( 'underscore' );
-	var THREE = require( 'THREE' );
+	var Pixi  = require( 'Pixi' );
+	var Matter = require( 'Matter' );
 	var TWEEN = require( 'TWEEN' );
 
 	var Traits = require( 'Traits' );
+	// var fixture	= new Box2D.Dynamics.b2FixtureDef();
+	// fixture.shape	= new Box2D.Collision.Shapes.b2CircleShape();
+	// fixture.density = 1;
+  // fixture.restitution = 0.7;
+	//
+  // var bodyDef = new Box2D.Dynamics.b2BodyDef();
+  // bodyDef.type  = Box2D.Dynamics.b2Body.b2_staticBody;
+
 
 	var Cell = function ( options ) {
-		options = options || {};
+	options = options || {};
 
-		THREE.Mesh.call( this );
-
+	Pixi.Sprite.call( this, new Pixi.Texture.fromImage("img/ball_white.png") );
 		this.ecosystem  = options.ecosystem;
 		this.traits     = _.extend( Traits.getRandom(), options.traits );
-		this.geometry   = options.geometry || this.getGeometry();
-		this.material   = options.material || this.getMaterial();
-		this.position   = options.position || this.getStartingPoint();
+
+		// bodyDef.position.Set( 100, 200);
+    // this.body       = this.ecosystem.world.CreateBody(bodyDef);
+		// var s = MathUtil.rndRange(70, 100);
+    // fixture.shape.SetRadius(s / 2 / METER);
+    // this.body.CreateFixture(fixture);
+
+		// this.geometry   = options.geometry || this.getGeometry();
+		// this.material   = options.material || this.getMaterial();
+		// this.position   = options.position || this.getStartingPoint();
 		this.energy     = options.energy || 100;
 		this.nextMating = options.nextMating || 100;
 		this.canMate    = options.canMate || false;
 		this.canMove    = options.canMove || true;
 
-		this.rotation.y = 0.8;
-		this.scale = new THREE.Vector3( this.ecosystem.cellScale, this.ecosystem.cellScale, this.ecosystem.cellScale );
+		this.anchor.x = this.anchor.y = 0.5;
 	};
 
-	Cell.prototype = Object.create( THREE.Mesh.prototype );
+	Cell.prototype = Object.create( Pixi.Sprite.prototype );
+
+
 
 	Cell.prototype.getMaterial = function () {
-		return new THREE.MeshBasicMaterial( { 'color' : this.traits.color } );
+		// return new THREE.MeshBasicMaterial( { 'color' : this.traits.color } );
 	};
 
 	// Returns different geometry for the different genders
 	Cell.prototype.getGeometry = function () {
 
 		if ( this.traits.gender === 'female' ) {
-			return new THREE.SphereGeometry( this.traits.size, 12, 12 );
+			// return new THREE.SphereGeometry( this.traits.size, 12, 12 );
 		}
 
-		return new THREE.TetrahedronGeometry( this.traits.size * 1.75, 0 );
+		// return new THREE.TetrahedronGeometry( this.traits.size * 1.75, 0 );
 	};
 
 	Cell.prototype.update = function () {
 		if ( !this.canMove ) {
 			return;
 		}
-		if ( !this.targetCell ) {
-			this.detectIntersects();
-		}
+		// if ( !this.targetCell ) {
+		// 	this.detectIntersects();
+		// }
 		this.move();
 
-		if ( !this.sight ) {
-			// this.sight = new THREE.Mesh( new THREE.SphereGeometry( 100, 12, 12 ), new THREE.MeshBasicMaterial( { 'color' : this.traits.color, 'transparent' : true, 'opacity' : 0.05 } ) );
-			// this.parent.add( this.sight );
-		}
-
-		if ( this.ecosystem.tick > this.nextMating ) {
-			this.canMate = true;
-		}
-		this.metabolize();
+		// if ( !this.sight ) {
+		// 	this.sight = new THREE.Mesh( new THREE.SphereGeometry( 100, 12, 12 ), new THREE.MeshBasicMaterial( { 'color' : this.traits.color, 'transparent' : true, 'opacity' : 0.05 } ) );
+		// 	// this.parent.add( this.sight );
+		// }
+		//
+		// if ( this.ecosystem.tick > this.nextMating ) {
+		// 	this.canMate = true;
+		// }
+		// this.metabolize();
 	};
 
-	Cell.prototype.metabolize = function () {
-		this.energy -= ( this.traits.metabolicRate / this.ecosystem.viscosity );
-		if ( this.energy <= 0 ) {
-			this.expire();
-		}
-	};
+	// Cell.prototype.metabolize = function () {
+	// 	this.energy -= ( this.traits.metabolicRate / this.ecosystem.viscosity );
+	// 	if ( this.energy <= 0 ) {
+	// 		this.expire();
+	// 	}
+	// };
 
-	Cell.prototype.expire = function () {
-		this.setColor( 0x333333 );
-		this.scale = new THREE.Vector3( 10, 10, 10 );
-		this.stop();
-		this.ecosystem.removeCell( this );
-	};
+	// Cell.prototype.expire = function () {
+	// 	this.setColor( 0x333333 );
+	// 	// this.scale = new THREE.Vector3( 10, 10, 10 );
+	// 	this.stop();
+	// 	this.ecosystem.removeCell( this );
+	// };
 
-	Cell.prototype.reproduce = function ( mate ) {
-		if ( this.checkMating ) {
-			return;
-		}
-		this.checkMating = true;
-
-		if ( !this.canMate ) {
-			return;
-		}
-
-		if ( !mate.canMate ) {
-			return;
-		}
-
-		mate.nextMating = this.ecosystem.tick + 1000;
-
-		this.canMate = false;
-		mate.canMate = false;
-
-		this.stop();
-
-
-		setTimeout( function () {
-			this.nextMating = this.ecosystem.tick + 1000;
-
-			var cell = new Cell( {
-				'ecosystem'  : this.ecosystem,
-				'position'   : this.position.clone(),
-				'nextMating' : this.ecosystem.tick + 5000,
-				'canMate'    : false,
-				'traits'     : Traits.mergeTraits( this.traits, mate.traits )
-			} );
-
-			console.log( 'spawning a new cell', cell.traits );
-
-			this.ecosystem.spawnCell( cell );
-
-			this.start();
-		}.bind( this ), 5000 );
-
-		this.checkMating = false;
-	};
+	// Cell.prototype.reproduce = function ( mate ) {
+	// 	if ( this.checkMating ) {
+	// 		return;
+	// 	}
+	// 	this.checkMating = true;
+	//
+	// 	if ( !this.canMate ) {
+	// 		return;
+	// 	}
+	//
+	// 	if ( !mate.canMate ) {
+	// 		return;
+	// 	}
+	//
+	// 	mate.nextMating = this.ecosystem.tick + 1000;
+	//
+	// 	this.canMate = false;
+	// 	mate.canMate = false;
+	//
+	// 	this.stop();
+	//
+	//
+	// 	setTimeout( function () {
+	// 		this.nextMating = this.ecosystem.tick + 1000;
+	//
+	// 		var cell = new Cell( {
+	// 			'ecosystem'  : this.ecosystem,
+	// 			'position'   : this.position.clone(),
+	// 			'nextMating' : this.ecosystem.tick + 5000,
+	// 			'canMate'    : false,
+	// 			'traits'     : Traits.mergeTraits( this.traits, mate.traits )
+	// 		} );
+	//
+	// 		console.log( 'spawning a new cell', cell.traits );
+	//
+	// 		this.ecosystem.spawnCell( cell );
+	//
+	// 		this.start();
+	// 	}.bind( this ), 5000 );
+	//
+	// 	this.checkMating = false;
+	// };
 
 	Cell.prototype.stop = function () {
 		this.canMove = false;
 		this.target  = null;
 		this.tween.stop();
-		this.removePath();
+		// this.removePath();
 	};
 
 	Cell.prototype.start = function () {
@@ -136,18 +152,17 @@ define( function ( require ) {
 	};
 
 	Cell.prototype.move = function () {
-		if ( !this.canMove ) {
-			return;
-		}
+		// if ( !this.canMove ) {
+		// 	return;
+		// }
 
 		if ( !this.target ) {
 			return this.startTween();
 		} else if ( this.position.distanceTo( this.target ) < this.traits.size ) {
-			this.targetCell = undefined;
 			return this.startTween();
 		}
 
-		this.updatePath();
+		// this.updatePath();
 	};
 
 	Cell.prototype.startTween = function ( destination ) {
@@ -164,33 +179,33 @@ define( function ( require ) {
 			.start();
 	};
 
-	Cell.prototype.addPath = function () {
-		return;
-		var mat = new THREE.LineDashedMaterial( {
-			'color'       : this.traits.color,
-			'opacity'     : 0.25,
-			'transparent' : true
-		} );
+	// Cell.prototype.addPath = function () {
+	// 	return;
+	// 	// var mat = new THREE.LineDashedMaterial( {
+	// 		'color'       : this.traits.color,
+	// 		'opacity'     : 0.25,
+	// 		'transparent' : true
+	// 	} );
+	//
+	// 	this.path = new THREE.Line( new THREE.Geometry(), mat );
+	// 	this.parent.add( this.path );
+	// };
 
-		this.path = new THREE.Line( new THREE.Geometry(), mat );
-		this.parent.add( this.path );
-	};
-
-	Cell.prototype.removePath = function () {
-		return;
-		this.parent.remove( this.path );
-		this.path = null;
-	};
-
-	Cell.prototype.updatePath = function () {
-		return;
-		if ( !this.path ) {
-			this.addPath();
-		}
-
-		this.path.geometry.vertices = [ this.position, this.target ];
-		this.path.geometry.verticesNeedUpdate = true;
-	};
+	// Cell.prototype.removePath = function () {
+	// 	return;
+	// 	this.parent.remove( this.path );
+	// 	this.path = null;
+	// };
+	//
+	// Cell.prototype.updatePath = function () {
+	// 	return;
+	// 	if ( !this.path ) {
+	// 		this.addPath();
+	// 	}
+	//
+	// 	this.path.geometry.vertices = [ this.position, this.target ];
+	// 	this.path.geometry.verticesNeedUpdate = true;
+	// };
 
 	Cell.prototype.getStartingPoint = function ( entire ) {
 		return this.ecosystem.getRandomPosition();
@@ -199,11 +214,11 @@ define( function ( require ) {
 	Cell.prototype.getRandomPoint = function () {
 		var min      = this.traits.size;
 		var max      = this.traits.sight;
-		var distanceVector = new THREE.Vector3( _.random( min, max ), _.random( min, max ), _.random( min, max ) ).normalize();
+		// var distanceVector = new THREE.Vector3( _.random( min, max ), _.random( min, max ), _.random( min, max ) ).normalize();
 
 		// console.log(distanceVector.x,distanceVector.y,distanceVector.z);
 		var randomVector = this.ecosystem.getRandomPosition();
-		return new THREE.Vector3().subVectors( distanceVector, randomVector ).negate();
+		// return new THREE.Vector3().subVectors( distanceVector, randomVector ).negate();
 	};
 
 	Cell.prototype.detectIntersects = function () {
