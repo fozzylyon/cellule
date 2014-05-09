@@ -3,19 +3,71 @@ define( function ( require ) {
 
 	var _               = require( 'underscore' );
 	var $               = require( 'jquery' );
-	var Matter           = require( 'Matter' );
+	var Matter          = require( 'Matter' );
 	var Cell            = require( 'Cell' );
 	var EcosystemConfig = require( 'EcosystemConfig' );
-	// var $population     = $( '#population' );
 
 	var Ecosystem = function ( options ) {
-		this.world;
-		this.renderer = options.renderer;
-		this.stage    = options.stage;
-		this.tick     = 0;
-		// this.world    = new Box2D.Dynamics.b2World(new Box2D.Common.Math.b2Vec2(0, 10),  true);
+		this.gui             = options.gui;
+		this.engine          = options.engine;
+		this.mouseConstraint = options.mouseConstraint;
 
 		this.initialize();
+	};
+
+	Ecosystem.prototype.reset = function () {
+		var world = this.engine.world;
+
+		Matter.Ecosystem.clear(world);
+		Matter.Engine.clear(this.engine);
+
+		// clear scene graph (if defined in controller)
+		var renderController = this.engine.render.controller;
+		if (renderController.clear)
+		    renderController.clear(this.engine.render);
+
+		// clear all scene events
+		for (var i = 0; i < _sceneEvents.length; i++)
+		    Events.off(this.engine, _sceneEvents[i]);
+		_sceneEvents = [];
+
+		// reset id pool
+		Common._nextId = 0;
+
+		// reset mouse offset and scale (only required for Demo.views)
+		Mouse.setScale(this.engine.input.mouse, { x: 1, y: 1 });
+		Mouse.setOffset(this.engine.input.mouse, { x: 0, y: 0 });
+
+		this.engine.enableSleeping = false;
+		this.engine.world.gravity.y = 1;
+		this.engine.world.gravity.x = 0;
+		this.engine.timing.timeScale = 1;
+
+		var offset = 5;
+		Matter.World.add(world, [
+		    Bodies.rectangle(400, -offset, 800.5 + 2 * offset, 50.5, { isStatic: true }),
+		    Bodies.rectangle(400, 600 + offset, 800.5 + 2 * offset, 50.5, { isStatic: true }),
+		    Bodies.rectangle(800 + offset, 300, 50.5, 600.5 + 2 * offset, { isStatic: true }),
+		    Bodies.rectangle(-offset, 300, 50.5, 600.5 + 2 * offset, { isStatic: true })
+		]);
+
+		this.mouseConstraint = Matter.MouseConstraint.create(this.engine);
+		Matter.World.add(world, this.mouseConstraint);
+
+		var renderOptions = this.engine.render.options;
+		renderOptions.wireframes = true;
+		renderOptions.hasBounds = false;
+		renderOptions.showDebug = false;
+		renderOptions.showBroadphase = false;
+		renderOptions.showBounds = false;
+		renderOptions.showVelocity = false;
+		renderOptions.showCollisions = false;
+		renderOptions.showAxes = false;
+		renderOptions.showPositions = false;
+		renderOptions.showAngleIndicator = true;
+		renderOptions.showIds = false;
+		renderOptions.showShadows = false;
+		renderOptions.background = '#fff';
 	};
 
 	Ecosystem.prototype.initialize = function () {

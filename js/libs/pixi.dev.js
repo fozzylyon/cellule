@@ -14,7 +14,6 @@
  */
 
 (function(){
-
     var root = this;
 
 /**
